@@ -100,6 +100,7 @@
                         <ContextMenu x:Name="MainMenu" Placement="Bottom">
                             <MenuItem Header="{Binding RecordMenuText}" Command="{Binding ToggleRecordCommand}" />
                             <MenuItem Header="Open recording…" Command="{Binding OpenRecordingCommand}" />
+                            <MenuItem Header="Site survey (heatmap)…" Click="OnSurveyClick" />
                             <MenuItem Header="Export to CSV…" Command="{Binding ExportCommand}" />
                             <Separator />
                             <MenuItem Header="Group by access point" IsCheckable="True" IsChecked="{Binding GroupByAccessPoint}" />

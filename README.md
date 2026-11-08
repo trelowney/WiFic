@@ -37,6 +37,10 @@ paid tool: real channel width, AP uptime, vendor, Wi-Fi generation, security, cl
 - **Your layout**: right-click the table header to choose columns. Column order, column widths, window size and panel
   height are remembered.
 - **Dark and light theme**, or follow the Windows setting.
+- **Site survey heatmap**: load a floor plan (or use a blank canvas) and click where you are standing. wific measures
+  for about 4 seconds and draws a coverage heatmap for any network and band. Surveys can be saved and exported as PNG.
+- **Recording and playback**: record a session to a `.wificrec` file and replay it later with a timeline, for example
+  to compare coverage before and after moving a router.
 - **CSV export**.
 - **Portable**: a single `.exe` with no installer and no registry entries. Settings are saved in `wific.settings.json` next to the exe.
 - **Built-in updater**: wific tells you when a new release is out and can replace itself in one click.

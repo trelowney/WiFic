@@ -185,6 +185,20 @@ public partial class MainWindow : Window
         MainMenu.IsOpen = true;
     }
 
+    private SurveyWindow? _survey;
+
+    private void OnSurveyClick(object sender, RoutedEventArgs e)
+    {
+        if (_survey != null)
+        {
+            _survey.Activate();
+            return;
+        }
+        _survey = new SurveyWindow(_vm) { Owner = this };
+        _survey.Closed += (_, _) => _survey = null;
+        _survey.Show();
+    }
+
     private void OnSettingsClick(object sender, RoutedEventArgs e)
     {
         var window = new SettingsWindow { Owner = this, DataContext = _vm };
