@@ -25,8 +25,18 @@ paid tool: real channel width, AP uptime, vendor, Wi-Fi generation, security, cl
 - **Security**: WPA/WPA2/WPA3 Personal and Enterprise, OWE, WEP, ciphers and PMF (802.11w).
 - **Load**: number of associated clients and channel utilization (BSS Load element).
 - **Extras**: country code, BSS color, beacon interval, 802.11k/v/r roaming support, Wi-Fi 7 multi-link, raw information elements.
-- **Graphs**: a channel/spectrum view for each band and the signal history of the last 5 minutes.
+- **Physical access points**: BSSIDs that belong to the same device (several SSIDs and bands) are grouped together.
+  Grouping uses MAC address similarity and the radios' boot time.
+- **Best channel**: for each band, the least congested channel, computed from the signal strength and load of overlapping
+  networks. Your own AP is ignored, because it is the one you would move.
+- **Your connection**: live signal sparkline, link rate, security and roaming history in one compact strip.
+- **Issues**: flags WEP/WPA/TKIP, open networks, overlapping 2.4 GHz channels, 40 MHz in 2.4 GHz, busy channels,
+  legacy-only APs and possible evil twins. Issues appear as a small badge in the table and as a list in the Issues tab.
+- **Graphs**: a channel/spectrum view for each band and a signal history of 1, 5 or 15 minutes.
 - **Filters**: band, search (SSID / BSSID / vendor / device), hide inactive, hide hidden networks.
+- **Your layout**: right-click the table header to choose columns. Column order, column widths, window size and panel
+  height are remembered.
+- **Dark and light theme**, or follow the Windows setting.
 - **CSV export**.
 - **Portable**: a single `.exe` with no installer and no registry entries. Settings are saved in `wific.settings.json` next to the exe.
 - **Built-in updater**: wific tells you when a new release is out and can replace itself in one click.
