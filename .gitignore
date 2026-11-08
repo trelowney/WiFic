@@ -6,3 +6,5 @@ dist/
 *.user
 *.suo
 wific.settings.json
+releases/
+*.exe
