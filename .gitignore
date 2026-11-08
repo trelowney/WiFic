@@ -1,0 +1,8 @@
+bin/
+obj/
+out/
+dist/
+.vs/
+*.user
+*.suo
+wific.settings.json

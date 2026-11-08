@@ -1,0 +1,17 @@
+<!--
+  wific - Wi-Fi network scanner for Windows
+  Copyright (C) 2026 trelowney
+  SPDX-License-Identifier: GPL-3.0-or-later
+-->
+<Application x:Class="Wific.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             ShutdownMode="OnMainWindowClose">
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Themes/Dark.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>

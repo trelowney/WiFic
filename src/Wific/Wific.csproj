@@ -1,0 +1,39 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <RootNamespace>Wific</RootNamespace>
+    <AssemblyName>wific</AssemblyName>
+    <ApplicationIcon>Assets\wific.ico</ApplicationIcon>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+
+    <!-- Zero tolerance: any compiler or analyzer warning fails the build. -->
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <MSBuildTreatWarningsAsErrors>true</MSBuildTreatWarningsAsErrors>
+
+    <Version>0.0.0-dev</Version>
+    <Product>wific</Product>
+    <Company>trelowney</Company>
+    <Authors>trelowney</Authors>
+    <Description>Free Wi-Fi network scanner for Windows (2.4 / 5 / 6 GHz)</Description>
+    <Copyright>Copyright (C) 2026 trelowney. Licensed under GPL-3.0-or-later.</Copyright>
+    <PackageLicenseExpression>GPL-3.0-or-later</PackageLicenseExpression>
+    <RepositoryUrl>https://github.com/trelowney/wific</RepositoryUrl>
+
+    <!-- Portable single-file publish -->
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+    <InvariantGlobalization>false</InvariantGlobalization>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Resource Include="Assets\wific.ico" />
+    <EmbeddedResource Include="Assets\manuf.gz" LogicalName="wific.manuf.gz" />
+  </ItemGroup>
+
+</Project>
