@@ -63,6 +63,18 @@ public sealed class WifiScanner : IDisposable
         }
     }
 
+    /// <summary>Current association and live RSSI; null when not connected.</summary>
+    public (ConnectionSnapshot Connection, int? Rssi)? ReadConnection(Guid iface)
+    {
+        lock (_sync)
+        {
+            if (_handle == IntPtr.Zero) return null;
+            var c = WlanApi.QueryConnection(_handle, iface);
+            if (c == null) return null;
+            return (c, WlanApi.QueryRssi(_handle, iface));
+        }
+    }
+
     public void Dispose()
     {
         lock (_sync)

@@ -63,7 +63,10 @@ public sealed class MainViewModel : ObservableObject, IDisposable
             live.IsLiveSorting = true;
             live.IsLiveFiltering = true;
             live.LiveFilteringProperties.Add(nameof(AccessPointViewModel.IsStale));
+            live.IsLiveGrouping = true;
+            live.LiveGroupingProperties.Add(nameof(AccessPointViewModel.Group));
         }
+        ApplyGrouping();
 
         ToggleScanCommand = new RelayCommand(() => IsPaused = !IsPaused);
         ExportCommand = new RelayCommand(Export, () => AccessPoints.Count > 0);
@@ -87,6 +90,189 @@ public sealed class MainViewModel : ObservableObject, IDisposable
     public ICollectionView View { get; }
     public IReadOnlyList<int> Intervals { get; } = new[] { 3, 5, 10, 30, 60 };
     public IReadOnlyList<int> RemoveAfterOptions { get; } = new[] { 1, 2, 5, 10, 30, 60 };
+    public IReadOnlyList<string> Themes { get; } = new[] { ThemeManager.ModeSystem, ThemeManager.ModeDark, ThemeManager.ModeLight };
+
+    public ConnectionViewModel Connection { get; } = new();
+    public ObservableCollection<IssueRow> Issues { get; } = new();
+    private readonly Dictionary<string, ApGroup> _groups = new(StringComparer.Ordinal);
+    private ChannelAdvice?[] _advice = new ChannelAdvice?[3];
+    private bool _connectionBusy;
+
+    public int IssueCount => Issues.Count;
+    public string IssuesHeader => Issues.Count == 0 ? "Issues" : $"Issues ({Issues.Count})";
+
+    public ChannelAdvice? Advice24 => _advice[0];
+    public ChannelAdvice? Advice5 => _advice[1];
+    public ChannelAdvice? Advice6 => _advice[2];
+    public ChannelAdvice? CurrentAdvice => _advice[ChannelBand];
+    public string AdviceText => Analysis.FormatAdvice(CurrentAdvice)
+        + (Connection.IsConnected && CurrentAdvice != null ? " · your AP excluded" : "");
+
+    public WifiBand CurrentBand => (WifiBand)ChannelBand;
+
+    public int ChannelBand
+    {
+        get => _settings.ChannelBand;
+        set
+        {
+            _settings.ChannelBand = value;
+            _settings.Save();
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(CurrentBand));
+            OnPropertyChanged(nameof(CurrentAdvice));
+            OnPropertyChanged(nameof(AdviceText));
+            OnPropertyChanged(nameof(IsBand24));
+            OnPropertyChanged(nameof(IsBand5));
+            OnPropertyChanged(nameof(IsBand6));
+        }
+    }
+
+    // Two-way friendly flags for the segmented band selector.
+    public bool IsBand24 { get => ChannelBand == 0; set { if (value) ChannelBand = 0; } }
+    public bool IsBand5 { get => ChannelBand == 1; set { if (value) ChannelBand = 1; } }
+    public bool IsBand6 { get => ChannelBand == 2; set { if (value) ChannelBand = 2; } }
+
+    public int HistoryMinutes
+    {
+        get => _settings.HistoryMinutes;
+        set { _settings.HistoryMinutes = value; SettingChanged(); NotifyHistory(); }
+    }
+
+    public bool IsHistory1 { get => HistoryMinutes == 1; set { if (value) HistoryMinutes = 1; } }
+    public bool IsHistory5 { get => HistoryMinutes == 5; set { if (value) HistoryMinutes = 5; } }
+    public bool IsHistory15 { get => HistoryMinutes == 15; set { if (value) HistoryMinutes = 15; } }
+
+    private void NotifyHistory()
+    {
+        OnPropertyChanged(nameof(IsHistory1));
+        OnPropertyChanged(nameof(IsHistory5));
+        OnPropertyChanged(nameof(IsHistory15));
+    }
+
+    public bool HistorySelectedOnly
+    {
+        get => _settings.HistorySelectedOnly;
+        set { _settings.HistorySelectedOnly = value; SettingChanged(); }
+    }
+
+    public bool GroupByAccessPoint
+    {
+        get => _settings.GroupByAccessPoint;
+        set
+        {
+            _settings.GroupByAccessPoint = value;
+            ApplyGrouping();
+            SettingChanged();
+        }
+    }
+
+    public string Theme
+    {
+        get => _settings.Theme;
+        set
+        {
+            _settings.Theme = value;
+            ThemeManager.Apply(value);
+            SettingChanged();
+        }
+    }
+
+    private void ApplyGrouping()
+    {
+        View.GroupDescriptions.Clear();
+        if (_settings.GroupByAccessPoint)
+            View.GroupDescriptions.Add(new PropertyGroupDescription(nameof(AccessPointViewModel.Group)));
+    }
+
+    /// <summary>Selects the access point the adapter is connected to.</summary>
+    public void SelectConnected()
+    {
+        var ap = AccessPoints.FirstOrDefault(a => a.IsConnected);
+        if (ap != null) SelectedAccessPoint = ap;
+    }
+
+    private void Analyze()
+    {
+        var all = AccessPoints.ToList();
+
+        // Physical AP groups
+        var keys = Analysis.GroupAccessPoints(all);
+        var used = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var cluster in all.GroupBy(a => keys[a]))
+        {
+            if (!_groups.TryGetValue(cluster.Key, out var group))
+            {
+                group = new ApGroup(cluster.Key);
+                _groups[cluster.Key] = group;
+            }
+            used.Add(cluster.Key);
+            var members = cluster.ToList();
+            foreach (var ap in members) ap.Group = group;
+            group.Update(members);
+        }
+        foreach (var stale in _groups.Keys.Where(k => !used.Contains(k)).ToList())
+            _groups.Remove(stale);
+
+        // Issues
+        Issues.Clear();
+        foreach (var ap in all)
+        {
+            ap.Issues = ap.IsStale ? Array.Empty<Issue>() : Analysis.DetectIssues(ap, all);
+            foreach (var issue in ap.Issues)
+                Issues.Add(new IssueRow(issue.Severity, ap, issue.Text));
+        }
+        var sorted = Issues.OrderByDescending(i => i.Severity).ThenBy(i => i.Ssid, StringComparer.CurrentCulture).ToList();
+        Issues.Clear();
+        foreach (var row in sorted) Issues.Add(row);
+        OnPropertyChanged(nameof(IssueCount));
+        OnPropertyChanged(nameof(IssuesHeader));
+
+        // Channel advice
+        _advice = new[]
+        {
+            Analysis.AdviseChannel(WifiBand.Band2_4, all),
+            Analysis.AdviseChannel(WifiBand.Band5, all),
+            Analysis.AdviseChannel(WifiBand.Band6, all),
+        };
+        if (!all.Any(a => a.Band == WifiBand.Band6)) _advice[2] = null;
+        OnPropertyChanged(nameof(Advice24));
+        OnPropertyChanged(nameof(Advice5));
+        OnPropertyChanged(nameof(Advice6));
+        OnPropertyChanged(nameof(CurrentAdvice));
+        OnPropertyChanged(nameof(AdviceText));
+
+        Connection.AccessPoint = all.FirstOrDefault(a => a.IsConnected);
+    }
+
+    private async System.Threading.Tasks.Task PollConnectionAsync()
+    {
+        var scanner = _scanner;
+        var iface = SelectedInterface;
+        if (scanner == null || iface == null || _connectionBusy) return;
+        _connectionBusy = true;
+        try
+        {
+            var data = await System.Threading.Tasks.Task.Run(() => scanner.ReadConnection(iface.Id));
+            Connection.Update(data);
+            if (data is { } d)
+            {
+                string bssid = string.Join(":", d.Connection.Bssid.Select(b => b.ToString("X2", CultureInfo.InvariantCulture)));
+                Connection.AccessPoint = AccessPoints.FirstOrDefault(a => string.Equals(a.Bssid, bssid, StringComparison.OrdinalIgnoreCase));
+            }
+            else
+            {
+                Connection.AccessPoint = null;
+            }
+        }
+        catch (WlanException)
+        {
+            Connection.Update(null);
+        }
+        finally
+        {
+            _connectionBusy = false;
+        }
+    }
 
     public ICommand ToggleScanCommand { get; }
     public ICommand ExportCommand { get; }
@@ -451,6 +637,7 @@ public sealed class MainViewModel : ObservableObject, IDisposable
             }
         }
 
+        Analyze();
         _lastScan = now;
         OnPropertyChanged(nameof(Count24));
         OnPropertyChanged(nameof(Count5));
@@ -463,6 +650,7 @@ public sealed class MainViewModel : ObservableObject, IDisposable
         var now = DateTime.Now;
         foreach (var ap in AccessPoints) ap.RefreshTime(now);
         UpdateStatus();
+        if (!IsPaused) _ = PollConnectionAsync();
     }
 
     private void UpdateStatus()
@@ -504,6 +692,9 @@ public sealed class MainViewModel : ObservableObject, IDisposable
         SelectedAccessPoint = null;
         AccessPoints.Clear();
         _byBssid.Clear();
+        _groups.Clear();
+        Issues.Clear();
+        OnPropertyChanged(nameof(IssuesHeader));
         Revision++;
     }
 

@@ -13,7 +13,7 @@ public partial class SettingsWindow : Window
     public SettingsWindow()
     {
         InitializeComponent();
-        SourceInitialized += (_, _) => DarkTitleBar.Apply(this);
+        SourceInitialized += (_, _) => DarkTitleBar.Apply(this, ThemeManager.IsDark);
     }
 
     private void OnCloseClick(object sender, RoutedEventArgs e) => Close();

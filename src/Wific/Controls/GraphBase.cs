@@ -16,10 +16,14 @@ public abstract class GraphBase : FrameworkElement
     protected const double MaxDbm = -20;
     protected const double PadLeft = 46, PadRight = 14, PadTop = 14, PadBottom = 30;
 
-    protected static readonly Brush Background = Frozen(Color.FromRgb(0x12, 0x15, 0x1C));
-    protected static readonly Brush AxisText = Frozen(Color.FromRgb(0x7D, 0x86, 0x9C));
-    protected static readonly Pen GridPen = FrozenPen(Color.FromRgb(0x23, 0x29, 0x35), 1);
-    protected static readonly Pen AxisPen = FrozenPen(Color.FromRgb(0x33, 0x3B, 0x4A), 1);
+    protected Brush Background => Res("GraphBg", Color.FromRgb(0x12, 0x15, 0x1C));
+    protected Brush AxisText => Res("GraphText", Color.FromRgb(0x7D, 0x86, 0x9C));
+    protected Pen GridPen => new(Res("GraphGrid", Color.FromRgb(0x23, 0x29, 0x35)), 1);
+    protected Pen AxisPen => new(Res("GraphAxis", Color.FromRgb(0x33, 0x3B, 0x4A)), 1);
+
+    /// <summary>Looks up a theme brush (changes when the theme is switched).</summary>
+    protected Brush Res(string key, Color fallback) => TryFindResource(key) as Brush ?? Frozen(fallback);
+
     protected static readonly Typeface Face = new(new FontFamily("Segoe UI"), FontStyles.Normal, FontWeights.Normal, FontStretches.Normal);
     protected static readonly Typeface FaceBold = new(new FontFamily("Segoe UI"), FontStyles.Normal, FontWeights.SemiBold, FontStretches.Normal);
 

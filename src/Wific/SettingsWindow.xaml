@@ -9,14 +9,14 @@
         Title="wific – Settings"
         Width="560" Height="720" MinWidth="480" MinHeight="480"
         WindowStartupLocation="CenterOwner" ShowInTaskbar="False" ResizeMode="CanResizeWithGrip"
-        Background="{StaticResource Bg}" Foreground="{StaticResource TextMain}"
+        Background="{DynamicResource Bg}" Foreground="{DynamicResource TextMain}"
         FontFamily="Segoe UI" FontSize="13" UseLayoutRounding="True" TextOptions.TextFormattingMode="Display">
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis" />
     </Window.Resources>
 
     <DockPanel>
-        <Border DockPanel.Dock="Bottom" Padding="20,12" BorderBrush="{StaticResource Line}" BorderThickness="0,1,0,0">
+        <Border DockPanel.Dock="Bottom" Padding="20,12" BorderBrush="{DynamicResource Line}" BorderThickness="0,1,0,0">
             <Button Content="Close" Width="96" HorizontalAlignment="Right" IsCancel="True" IsDefault="True" Click="OnCloseClick" />
         </Border>
 
@@ -35,7 +35,7 @@
                             </Grid.ColumnDefinitions>
                             <StackPanel VerticalAlignment="Center">
                                 <TextBlock Text="Scan interval" />
-                                <TextBlock Text="How often Windows is asked for a fresh scan." Foreground="{StaticResource TextMuted}" FontSize="11.5" />
+                                <TextBlock Text="How often Windows is asked for a fresh scan." Foreground="{DynamicResource TextMuted}" FontSize="11.5" />
                             </StackPanel>
                             <ComboBox Grid.Column="1" Width="110" ItemsSource="{Binding Intervals}" SelectedItem="{Binding ScanInterval}" ItemStringFormat="{}{0} s" />
                         </Grid>
@@ -46,7 +46,7 @@
                             </Grid.ColumnDefinitions>
                             <StackPanel VerticalAlignment="Center">
                                 <TextBlock Text="Forget networks after" />
-                                <TextBlock Text="Networks not seen for this long are removed from the list." Foreground="{StaticResource TextMuted}" FontSize="11.5" />
+                                <TextBlock Text="Networks not seen for this long are removed from the list." Foreground="{DynamicResource TextMuted}" FontSize="11.5" />
                             </StackPanel>
                             <ComboBox Grid.Column="1" Width="110" ItemsSource="{Binding RemoveAfterOptions}" SelectedItem="{Binding RemoveAfterMinutes}" ItemStringFormat="{}{0} min" />
                         </Grid>
@@ -57,6 +57,18 @@
                 <Border Style="{StaticResource Card}" Padding="18,12,18,6" Margin="0,0,0,14">
                     <StackPanel>
                         <TextBlock Text="DISPLAY" Style="{StaticResource SectionTitle}" />
+                        <Grid Margin="0,0,0,14">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Text="Theme" />
+                                <TextBlock Text="System follows the Windows app mode." Foreground="{DynamicResource TextMuted}" FontSize="11.5" />
+                            </StackPanel>
+                            <ComboBox Grid.Column="1" Width="110" ItemsSource="{Binding Themes}" SelectedItem="{Binding Theme}" />
+                        </Grid>
+                        <CheckBox Style="{StaticResource Switch}" IsChecked="{Binding GroupByAccessPoint}" Content="Group BSSIDs by physical access point" />
                         <CheckBox Style="{StaticResource Switch}" IsChecked="{Binding ShowHiddenNetworks}" Content="Show hidden networks (empty SSID)" />
                         <CheckBox Style="{StaticResource Switch}" IsChecked="{Binding HideStale}" Content="Hide networks missing from the last scan" />
                         <CheckBox Style="{StaticResource Switch}" IsChecked="{Binding AlwaysOnTop}" Content="Keep window always on top" />
@@ -73,8 +85,8 @@
                             <Button Content="Update now" Style="{StaticResource AccentButton}" Command="{Binding InstallUpdateCommand}" Margin="8,0,0,0"
                                     Visibility="{Binding HasUpdate, Converter={StaticResource BoolToVis}}" />
                         </StackPanel>
-                        <TextBlock Text="{Binding UpdateMessage}" Foreground="{StaticResource TextMuted}" FontSize="12" Margin="0,8,0,0" TextWrapping="Wrap" />
-                        <TextBlock Foreground="{StaticResource TextMuted}" FontSize="11.5" Margin="0,8,0,0" TextWrapping="Wrap"
+                        <TextBlock Text="{Binding UpdateMessage}" Foreground="{DynamicResource TextMuted}" FontSize="12" Margin="0,8,0,0" TextWrapping="Wrap" />
+                        <TextBlock Foreground="{DynamicResource TextMuted}" FontSize="11.5" Margin="0,8,0,0" TextWrapping="Wrap"
                                    Text="Updates are downloaded from GitHub Releases and replace the portable .exe in place. Nothing is installed." />
                     </StackPanel>
                 </Border>
@@ -84,19 +96,19 @@
                     <StackPanel>
                         <TextBlock Text="ABOUT" Style="{StaticResource SectionTitle}" />
                         <TextBlock FontSize="15" FontWeight="SemiBold"><Run Text="wific " /><Run Text="{Binding AppVersion, Mode=OneWay}" /></TextBlock>
-                        <TextBlock Text="Free Wi-Fi network scanner for Windows." Foreground="{StaticResource TextMuted}" Margin="0,2,0,10" />
+                        <TextBlock Text="Free Wi-Fi network scanner for Windows." Foreground="{DynamicResource TextMuted}" Margin="0,2,0,10" />
                         <TextBlock Text="Copyright © 2026 trelowney" />
-                        <TextBlock TextWrapping="Wrap" Foreground="{StaticResource TextMuted}" FontSize="12" Margin="0,8,0,0">
+                        <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource TextMuted}" FontSize="12" Margin="0,8,0,0">
                             This program is free software: you can redistribute it and/or modify it under the terms of the
                             GNU General Public License as published by the Free Software Foundation, either version 3 of the
                             License, or (at your option) any later version. This program comes with ABSOLUTELY NO WARRANTY.
                         </TextBlock>
                         <TextBlock Margin="0,10,0,0">
-                            <Hyperlink NavigateUri="https://github.com/trelowney/wific" RequestNavigate="OnLinkClick" Foreground="{StaticResource Accent}">github.com/trelowney/wific</Hyperlink>
-                            <Run Text="  ·  " Foreground="{StaticResource TextMuted}" />
-                            <Hyperlink NavigateUri="https://www.gnu.org/licenses/gpl-3.0.html" RequestNavigate="OnLinkClick" Foreground="{StaticResource Accent}">GPL-3.0 license</Hyperlink>
+                            <Hyperlink NavigateUri="https://github.com/trelowney/wific" RequestNavigate="OnLinkClick" Foreground="{DynamicResource Accent}">github.com/trelowney/wific</Hyperlink>
+                            <Run Text="  ·  " Foreground="{DynamicResource TextMuted}" />
+                            <Hyperlink NavigateUri="https://www.gnu.org/licenses/gpl-3.0.html" RequestNavigate="OnLinkClick" Foreground="{DynamicResource Accent}">GPL-3.0 license</Hyperlink>
                         </TextBlock>
-                        <TextBlock TextWrapping="Wrap" Foreground="{StaticResource TextMuted}" FontSize="11.5" Margin="0,10,0,0">
+                        <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource TextMuted}" FontSize="11.5" Margin="0,10,0,0">
                             <Run Text="Vendor names: IEEE MAC registry via the Wireshark manuf database." />
                             <LineBreak />
                             <Run Text="Settings file: " /><Run Text="{Binding SettingsLocation, Mode=OneWay}" />

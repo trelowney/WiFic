@@ -16,7 +16,9 @@ public partial class App : Application
         DispatcherUnhandledException += OnUnhandledException;
         Updater.CleanupOldVersion();
 
-        var window = new MainWindow(AppSettings.Load());
+        var settings = AppSettings.Load();
+        ThemeManager.Initialize(settings.Theme);
+        var window = new MainWindow(settings);
         MainWindow = window;
         window.Show();
     }

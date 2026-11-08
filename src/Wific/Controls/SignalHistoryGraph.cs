@@ -13,8 +13,27 @@ namespace Wific.Controls;
 /// <summary>RSSI over time for the visible networks; the selected one is highlighted.</summary>
 public sealed class SignalHistoryGraph : GraphBase
 {
-    private static readonly TimeSpan Window = TimeSpan.FromMinutes(5);
     private static readonly TimeSpan MaxGap = TimeSpan.FromSeconds(75);
+
+    public static readonly DependencyProperty MinutesProperty = DependencyProperty.Register(
+        nameof(Minutes), typeof(int), typeof(SignalHistoryGraph),
+        new FrameworkPropertyMetadata(5, FrameworkPropertyMetadataOptions.AffectsRender));
+
+    public static readonly DependencyProperty SelectedOnlyProperty = DependencyProperty.Register(
+        nameof(SelectedOnly), typeof(bool), typeof(SignalHistoryGraph),
+        new FrameworkPropertyMetadata(false, FrameworkPropertyMetadataOptions.AffectsRender));
+
+    public int Minutes
+    {
+        get => (int)GetValue(MinutesProperty);
+        set => SetValue(MinutesProperty, value);
+    }
+
+    public bool SelectedOnly
+    {
+        get => (bool)GetValue(SelectedOnlyProperty);
+        set => SetValue(SelectedOnlyProperty, value);
+    }
 
     protected override void OnRender(DrawingContext dc)
     {
@@ -22,23 +41,30 @@ public sealed class SignalHistoryGraph : GraphBase
         if (ActualWidth < PadLeft + PadRight + 20 || ActualHeight < PadTop + PadBottom + 20) return;
 
         var r = PlotArea;
+        int minutes = Math.Max(1, Minutes);
+        var window = TimeSpan.FromMinutes(minutes);
         var now = DateTime.Now;
-        var start = now - Window;
-        double TimeToX(DateTime t) => r.Left + (t - start).TotalSeconds / Window.TotalSeconds * r.Width;
+        var start = now - window;
+        double TimeToX(DateTime t) => r.Left + (t - start).TotalSeconds / window.TotalSeconds * r.Width;
 
         DrawDbmAxis(dc);
-        for (int m = 0; m <= 5; m++)
+        int ticks = minutes == 1 ? 4 : 5;
+        for (int i = 0; i <= ticks; i++)
         {
-            double x = TimeToX(start + TimeSpan.FromMinutes(m));
+            var t = start + TimeSpan.FromTicks(window.Ticks * i / ticks);
+            double x = TimeToX(t);
             dc.DrawLine(GridPen, new Point(x, r.Top), new Point(x, r.Bottom + 4));
-            var label = Text(m == 5 ? "now" : $"-{5 - m} min", 10.5, AxisText);
+            var ago = now - t;
+            string text = i == ticks ? "now" : ago.TotalSeconds < 60 ? $"-{(int)Math.Round(ago.TotalSeconds)} s" : $"-{ago.TotalMinutes:0.#} min";
+            var label = Text(text, 10.5, AxisText);
             double lx = Math.Min(x - label.Width / 2, r.Right - label.Width);
             dc.DrawText(label, new Point(lx, r.Bottom + 6));
         }
 
-        var items = Items?.OfType<AccessPointViewModel>().ToList();
-        if (items == null || items.Count == 0) return;
         var selected = Selected as AccessPointViewModel;
+        var items = Items?.OfType<AccessPointViewModel>().ToList();
+        if (items == null) return;
+        if (SelectedOnly) items = items.Where(a => a == selected).ToList();
 
         dc.PushClip(new RectangleGeometry(r));
         foreach (var ap in items.Where(a => a != selected))
@@ -51,6 +77,11 @@ public sealed class SignalHistoryGraph : GraphBase
         {
             var t = Text($"{selected.Ssid}  {selected.Rssi} dBm", 12, selected.Brush, true);
             dc.DrawText(t, new Point(r.Right - t.Width - 6, r.Top + 4));
+        }
+        else if (SelectedOnly)
+        {
+            var t = Text("Select a network in the table", 13, AxisText);
+            dc.DrawText(t, new Point(r.Left + (r.Width - t.Width) / 2, r.Top + (r.Height - t.Height) / 2));
         }
     }
 

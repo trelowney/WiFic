@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
 
@@ -28,6 +29,19 @@ public sealed class AppSettings
     public bool Show6 { get; set; } = true;
     public string? LastAdapter { get; set; }
     public string? SkippedVersion { get; set; }
+
+    public string Theme { get; set; } = "System";
+    public bool GroupByAccessPoint { get; set; } = true;
+    public int HistoryMinutes { get; set; } = 5;
+    public bool HistorySelectedOnly { get; set; }
+    public int ChannelBand { get; set; }
+
+    public double WindowWidth { get; set; }
+    public double WindowHeight { get; set; }
+    public bool WindowMaximized { get; set; }
+    public double BottomPanelHeight { get; set; } = 290;
+
+    public List<ColumnState> Columns { get; set; } = new();
 
     public static string? LoadedFrom { get; private set; }
 
@@ -88,5 +102,18 @@ public sealed class AppSettings
     {
         ScanIntervalSeconds = Math.Clamp(ScanIntervalSeconds, 3, 300);
         RemoveAfterMinutes = Math.Clamp(RemoveAfterMinutes, 1, 1440);
+        HistoryMinutes = HistoryMinutes is 1 or 5 or 15 ? HistoryMinutes : 5;
+        ChannelBand = Math.Clamp(ChannelBand, 0, 2);
+        BottomPanelHeight = Math.Clamp(BottomPanelHeight, 160, 2000);
+        Columns ??= new List<ColumnState>();
     }
+}
+
+/// <summary>Persisted visibility, order and width of one table column (keyed by header text).</summary>
+public sealed class ColumnState
+{
+    public string Key { get; set; } = "";
+    public bool Visible { get; set; } = true;
+    public int DisplayIndex { get; set; }
+    public double Width { get; set; }
 }

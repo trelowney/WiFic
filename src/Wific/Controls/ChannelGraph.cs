@@ -2,6 +2,7 @@
 // Copyright (C) 2026 trelowney
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -15,16 +16,24 @@ namespace Wific.Controls;
 /// <summary>Spectrum view: every BSS is drawn as a shape spanning its full channel width, height = RSSI.</summary>
 public sealed class ChannelGraph : GraphBase
 {
-    private static readonly Brush DfsBrush = Frozen(Color.FromArgb(0x14, 0xFF, 0xB0, 0x3B));
-
     public static readonly DependencyProperty BandProperty = DependencyProperty.Register(
         nameof(Band), typeof(WifiBand), typeof(ChannelGraph),
         new FrameworkPropertyMetadata(WifiBand.Band2_4, FrameworkPropertyMetadataOptions.AffectsRender));
+
+    public static readonly DependencyProperty AdviceProperty = DependencyProperty.Register(
+        nameof(Advice), typeof(ChannelAdvice), typeof(ChannelGraph),
+        new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.AffectsRender));
 
     public WifiBand Band
     {
         get => (WifiBand)GetValue(BandProperty);
         set => SetValue(BandProperty, value);
+    }
+
+    public ChannelAdvice? Advice
+    {
+        get => (ChannelAdvice?)GetValue(AdviceProperty);
+        set => SetValue(AdviceProperty, value);
     }
 
     protected override void OnRender(DrawingContext dc)
@@ -39,9 +48,21 @@ public sealed class ChannelGraph : GraphBase
         if (Band == WifiBand.Band5)
         {
             double x1 = FreqToX(5250), x2 = FreqToX(5730);
-            dc.DrawRectangle(DfsBrush, null, new Rect(x1, r.Top, x2 - x1, r.Height));
+            dc.DrawRectangle(Res("GraphDfs", Color.FromArgb(0x14, 0xFF, 0xB0, 0x3B)), null, new Rect(x1, r.Top, x2 - x1, r.Height));
             var dfs = Text("DFS", 10, AxisText);
             dc.DrawText(dfs, new Point((x1 + x2 - dfs.Width) / 2, r.Top + 2));
+        }
+
+        if (Advice is { } advice && advice.Band == Band)
+        {
+            double x1 = FreqToX(advice.LowMhz), x2 = FreqToX(advice.HighMhz);
+            var good = Res("Good", Color.FromRgb(0x3D, 0xD6, 0x8C));
+            dc.DrawRectangle(Res("GraphBest", Color.FromArgb(0x26, 0x3D, 0xD6, 0x8C)), null, new Rect(x1, r.Top, Math.Max(1, x2 - x1), r.Height));
+            var pen = new Pen(good, 1) { DashStyle = DashStyles.Dash };
+            dc.DrawLine(pen, new Point(x1, r.Top), new Point(x1, r.Bottom));
+            dc.DrawLine(pen, new Point(x2, r.Top), new Point(x2, r.Bottom));
+            var label = Text("Best", 10.5, good, true);
+            dc.DrawText(label, new Point((x1 + x2 - label.Width) / 2, r.Top + 2));
         }
 
         DrawDbmAxis(dc);
@@ -72,7 +93,7 @@ public sealed class ChannelGraph : GraphBase
         }
     }
 
-    private void DrawNetwork(DrawingContext dc, AccessPointViewModel ap, System.Func<double, double> freqToX, Rect r, bool isSelected)
+    private void DrawNetwork(DrawingContext dc, AccessPointViewModel ap, Func<double, double> freqToX, Rect r, bool isSelected)
     {
         double half = ap.ChannelWidthMhz / 2.0;
         double left = freqToX(ap.CenterFrequencyMhz - half);

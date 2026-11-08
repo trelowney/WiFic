@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Windows.Media;
 using Wific.Wifi;
 
@@ -76,9 +77,49 @@ public sealed class AccessPointViewModel : ObservableObject
     public int CenterFrequencyMhz => _info.CenterFrequencyMhz;
     public int ChannelWidthMhz => _info.ChannelWidthMhz;
     public string WidthText => _info.Is80Plus80 ? "80+80 MHz" : $"{_info.ChannelWidthMhz} MHz";
-    public string ChannelText => _info.ChannelWidthMhz > 20 && _info.CenterChannel != _info.Channel
-        ? $"{_info.Channel} ({_info.CenterChannel})"
+    public string BandShort => _info.Band switch
+    {
+        WifiBand.Band2_4 => "2.4G",
+        WifiBand.Band5 => "5G",
+        _ => "6G",
+    };
+    public string ChannelText => $"{_info.Channel} · {BandShort}";
+    public string CenterChannelText => _info.ChannelWidthMhz > 20 && _info.CenterChannel != _info.Channel
+        ? $"{_info.Channel} (center {_info.CenterChannel})"
         : _info.Channel.ToString(CultureInfo.InvariantCulture);
+
+    // ---- Analysis results (set by MainViewModel after every scan) ----
+
+    private ApGroup? _group;
+    private IReadOnlyList<Issue> _issues = Array.Empty<Issue>();
+
+    public ApGroup? Group
+    {
+        get => _group;
+        set => Set(ref _group, value);
+    }
+
+    public IReadOnlyList<Issue> Issues
+    {
+        get => _issues;
+        set
+        {
+            _issues = value;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(IssueSeverity));
+            OnPropertyChanged(nameof(HasIssues));
+            OnPropertyChanged(nameof(IssueTooltip));
+            OnPropertyChanged(nameof(IssueSymbol));
+        }
+    }
+
+    public Severity IssueSeverity => _issues.Count == 0 ? Severity.None : _issues.Max(i => i.Severity);
+    public bool HasIssues => _issues.Count > 0;
+    public string IssueSymbol => IssueSeverity == Severity.Info ? "i" : "!";
+    public string? IssueTooltip => _issues.Count == 0 ? null : string.Join("\n", _issues.Select(i => "• " + i.Text));
+
+    /// <summary>Estimated moment the AP radio started (now minus TSF uptime), used for grouping.</summary>
+    public DateTime? BootTime => _uptimeBase is TimeSpan b ? _uptimeAt - b : null;
 
     public string Standard => _info.Standard;
     public string Protocol => _info.Protocol;

@@ -144,6 +144,54 @@ internal static class WlanApi
         return result;
     }
 
+    /// <summary>Reads the current association (SSID, BSSID, link rates, security) or null when not connected.</summary>
+    public static ConnectionSnapshot? QueryConnection(IntPtr handle, Guid iface)
+    {
+        uint rc = WlanQueryInterface(handle, ref iface, WlanIntfOpcodeCurrentConnection, IntPtr.Zero, out uint size, out IntPtr data, IntPtr.Zero);
+        if (rc != ERROR_SUCCESS || data == IntPtr.Zero)
+            return null;
+        try
+        {
+            if (size < 604) return null;
+            int state = Marshal.ReadInt32(data, 0);
+            if (state != 1) return null;
+            string profile = Marshal.PtrToStringUni(data + 8) ?? "";
+            int ssidLen = Math.Clamp(Marshal.ReadInt32(data, 520), 0, 32);
+            var ssid = new byte[ssidLen];
+            if (ssidLen > 0) Marshal.Copy(data + 524, ssid, 0, ssidLen);
+            var bssid = new byte[6];
+            Marshal.Copy(data + 560, bssid, 0, 6);
+            int phy = Marshal.ReadInt32(data, 568);
+            int quality = Marshal.ReadInt32(data, 576);
+            uint rx = unchecked((uint)Marshal.ReadInt32(data, 580));
+            uint tx = unchecked((uint)Marshal.ReadInt32(data, 584));
+            int auth = Marshal.ReadInt32(data, 596);
+            int cipher = Marshal.ReadInt32(data, 600);
+            return new ConnectionSnapshot(profile, ssid, bssid, phy, quality, rx, tx, auth, cipher);
+        }
+        finally
+        {
+            WlanFreeMemory(data);
+        }
+    }
+
+    /// <summary>Live RSSI of the current connection in dBm, or null.</summary>
+    public static int? QueryRssi(IntPtr handle, Guid iface)
+    {
+        const int WlanIntfOpcodeRssi = 0x10000102;
+        uint rc = WlanQueryInterface(handle, ref iface, WlanIntfOpcodeRssi, IntPtr.Zero, out uint size, out IntPtr data, IntPtr.Zero);
+        if (rc != ERROR_SUCCESS || data == IntPtr.Zero)
+            return null;
+        try
+        {
+            return size >= 4 ? Marshal.ReadInt32(data, 0) : null;
+        }
+        finally
+        {
+            WlanFreeMemory(data);
+        }
+    }
+
     /// <summary>Returns the BSSID the interface is currently associated with, or null.</summary>
     public static byte[]? GetConnectedBssid(IntPtr handle, Guid iface)
     {
@@ -187,6 +235,17 @@ internal sealed record RawBssEntry(
     uint CenterFrequencyKhz,
     ushort[] Rates,
     byte[] InformationElements);
+
+public sealed record ConnectionSnapshot(
+    string Profile,
+    byte[] Ssid,
+    byte[] Bssid,
+    int PhyType,
+    int SignalQuality,
+    uint RxRateKbps,
+    uint TxRateKbps,
+    int AuthAlgorithm,
+    int CipherAlgorithm);
 
 internal sealed class WlanException : Exception
 {
