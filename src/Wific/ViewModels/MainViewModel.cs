@@ -76,6 +76,12 @@ public sealed class MainViewModel : ObservableObject, IDisposable
         DismissUpdateCommand = new RelayCommand(DismissUpdate, () => !_isUpdating);
         SkipUpdateCommand = new RelayCommand(SkipUpdate, () => _update != null && !_isUpdating);
         CheckUpdatesNowCommand = new RelayCommand(() => _ = CheckForUpdatesAsync(true), () => !_isUpdating);
+        ToggleRecordCommand = new RelayCommand(ToggleRecording, () => !IsPlayback);
+        OpenRecordingCommand = new RelayCommand(OpenRecording, () => !IsRecording);
+        PlayPauseCommand = new RelayCommand(() => IsPlaying = !IsPlaying, () => IsPlayback);
+        ExitPlaybackCommand = new RelayCommand(ExitPlayback, () => IsPlayback);
+        _playTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(400) };
+        _playTimer.Tick += (_, _) => PlaybackStep();
 
         _clock = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
         _clock.Tick += (_, _) => Tick();
@@ -520,7 +526,7 @@ public sealed class MainViewModel : ObservableObject, IDisposable
         {
             var started = DateTime.Now;
             var iface = SelectedInterface;
-            if (!IsPaused && iface != null && _scanner != null)
+            if (!IsPaused && !IsPlayback && iface != null && _scanner != null)
             {
                 if (_resetPending) Clear();
                 IsScanning = true;
@@ -583,7 +589,8 @@ public sealed class MainViewModel : ObservableObject, IDisposable
         try
         {
             var result = await Task.Run(() => scanner.Read(iface.Id));
-            Apply(result);
+            RecordFrame(result);
+            Apply(result, DateTime.Now);
             ErrorText = null;
             LocationProblem = false;
         }
@@ -600,9 +607,8 @@ public sealed class MainViewModel : ObservableObject, IDisposable
         ErrorText = "Windows blocked access to Wi-Fi scan results. Turn on Location services and allow desktop apps to access your location.";
     }
 
-    private void Apply(ScanResult result)
+    private void Apply(ScanResult result, DateTime now)
     {
-        var now = DateTime.Now;
         var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
         foreach (var info in result.Networks)
@@ -647,17 +653,17 @@ public sealed class MainViewModel : ObservableObject, IDisposable
 
     private void Tick()
     {
-        var now = DateTime.Now;
+        var now = IsPlayback ? _playbackNow : DateTime.Now;
         foreach (var ap in AccessPoints) ap.RefreshTime(now);
         UpdateStatus();
-        if (!IsPaused) _ = PollConnectionAsync();
+        if (!IsPaused && !IsPlayback) _ = PollConnectionAsync();
     }
 
     private void UpdateStatus()
     {
         int active = AccessPoints.Count(a => !a.IsStale);
-        string state = IsPaused ? "Paused" : IsScanning ? "Scanning…" : "Idle";
-        string last = _lastScan is DateTime t ? $" · last update {(int)(DateTime.Now - t).TotalSeconds} s ago" : "";
+        string state = IsPlayback ? "Playback" : IsPaused ? "Paused" : IsScanning ? "Scanning…" : "Idle";
+        string last = !IsPlayback && _lastScan is DateTime t ? $" · last update {(int)(DateTime.Now - t).TotalSeconds} s ago" : "";
         StatusText = $"{state} · {active} active BSSIDs · {AccessPoints.Count} total{last}";
     }
 
@@ -760,8 +766,253 @@ public sealed class MainViewModel : ObservableObject, IDisposable
         return plus > 0 ? v[..plus] : v;
     }
 
+    // ---- Recording & playback ----
+
+    private Recorder? _recorder;
+    private List<RecordedFrame>? _frames;
+    private int _playbackIndex;
+    private bool _isPlaying;
+    private DateTime _playbackNow = DateTime.Now;
+    private string _playbackFile = "";
+    private readonly DispatcherTimer _playTimer;
+
+    public ICommand ToggleRecordCommand { get; }
+    public ICommand OpenRecordingCommand { get; }
+    public ICommand PlayPauseCommand { get; }
+    public ICommand ExitPlaybackCommand { get; }
+
+    public bool IsRecording => _recorder != null;
+    public string RecordMenuText => IsRecording ? "Stop recording" : "Start recording…";
+    public string RecordingText => _recorder == null ? "" : $"● REC {System.IO.Path.GetFileName(_recorder.Path)} · {_recorder.FrameCount} scans";
+
+    public bool IsPlayback => _frames != null;
+    public bool ShowConnectionStrip => !IsPlayback;
+    public int PlaybackMax => Math.Max(0, (_frames?.Count ?? 1) - 1);
+    public string PlaybackFile => _playbackFile;
+    public string PlaybackTimeText => _frames == null || _frames.Count == 0
+        ? ""
+        : $"{_frames[_playbackIndex].Time:dd.MM.yyyy HH:mm:ss}  ·  scan {_playbackIndex + 1} / {_frames.Count}";
+
+    /// <summary>Reference time for the graphs (null = live).</summary>
+    public DateTime? GraphNow => IsPlayback ? _playbackNow : null;
+
+    public bool IsPlaying
+    {
+        get => _isPlaying;
+        set
+        {
+            if (!Set(ref _isPlaying, value)) return;
+            OnPropertyChanged(nameof(PlayButtonText));
+            if (value)
+            {
+                if (_playbackIndex >= PlaybackMax) PlaybackIndex = 0;
+                _playTimer.Start();
+            }
+            else
+            {
+                _playTimer.Stop();
+            }
+        }
+    }
+
+    public string PlayButtonText => _isPlaying ? "Pause" : "Play";
+
+    public int PlaybackIndex
+    {
+        get => _playbackIndex;
+        set
+        {
+            if (_frames == null) return;
+            int v = Math.Clamp(value, 0, PlaybackMax);
+            if (v == _playbackIndex && AccessPoints.Count > 0) return;
+            int previous = _playbackIndex;
+            _playbackIndex = v;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(PlaybackTimeText));
+            if (v == previous + 1) ApplyFrame(_frames[v]);
+            else RebuildPlayback();
+        }
+    }
+
+    private void RecordFrame(ScanResult result)
+    {
+        if (_recorder == null) return;
+        try
+        {
+            _recorder.Write(new RecordedFrame { Time = DateTime.Now, ConnectedBssid = result.ConnectedBssid, Networks = result.Networks });
+            OnPropertyChanged(nameof(RecordingText));
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            ErrorText = "Recording stopped: " + ex.Message;
+            StopRecording();
+        }
+    }
+
+    private void ToggleRecording()
+    {
+        if (_recorder != null)
+        {
+            StopRecording();
+            return;
+        }
+
+        var dialog = new SaveFileDialog
+        {
+            Filter = "wific recording (*.wificrec)|*.wificrec",
+            FileName = $"wific-{DateTime.Now:yyyyMMdd-HHmmss}.wificrec",
+        };
+        if (dialog.ShowDialog() != true) return;
+        try
+        {
+            _recorder = new Recorder(dialog.FileName);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            ErrorText = "Cannot start recording: " + ex.Message;
+            return;
+        }
+        NotifyRecording();
+    }
+
+    private void StopRecording()
+    {
+        _recorder?.Dispose();
+        _recorder = null;
+        NotifyRecording();
+    }
+
+    private void NotifyRecording()
+    {
+        OnPropertyChanged(nameof(IsRecording));
+        OnPropertyChanged(nameof(RecordMenuText));
+        OnPropertyChanged(nameof(RecordingText));
+        CommandManager.InvalidateRequerySuggested();
+    }
+
+    private void OpenRecording()
+    {
+        var dialog = new OpenFileDialog { Filter = "wific recording (*.wificrec)|*.wificrec" };
+        if (dialog.ShowDialog() != true) return;
+
+        List<RecordedFrame> frames;
+        try
+        {
+            frames = Recorder.Load(dialog.FileName);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidDataException)
+        {
+            ErrorText = "Cannot open recording: " + ex.Message;
+            return;
+        }
+        if (frames.Count == 0)
+        {
+            ErrorText = "The recording does not contain any scans.";
+            return;
+        }
+
+        _frames = frames;
+        _playbackFile = System.IO.Path.GetFileName(dialog.FileName);
+        _playbackIndex = 0;
+        Connection.Update(null);
+        NotifyPlayback();
+        RebuildPlayback();
+    }
+
+    private void ExitPlayback()
+    {
+        IsPlaying = false;
+        _frames = null;
+        Clear();
+        NotifyPlayback();
+        _lastScan = null;
+        UpdateStatus();
+    }
+
+    private void NotifyPlayback()
+    {
+        OnPropertyChanged(nameof(IsPlayback));
+        OnPropertyChanged(nameof(ShowConnectionStrip));
+        OnPropertyChanged(nameof(PlaybackMax));
+        OnPropertyChanged(nameof(PlaybackIndex));
+        OnPropertyChanged(nameof(PlaybackFile));
+        OnPropertyChanged(nameof(PlaybackTimeText));
+        OnPropertyChanged(nameof(GraphNow));
+        CommandManager.InvalidateRequerySuggested();
+    }
+
+    /// <summary>Re-applies the frames that lead up to the current position (enough for 15 min of history).</summary>
+    private void RebuildPlayback()
+    {
+        if (_frames == null) return;
+        var selectedBssid = SelectedAccessPoint?.Bssid;
+        Clear();
+        var target = _frames[_playbackIndex].Time;
+        var from = target - TimeSpan.FromMinutes(Math.Max(15, _settings.RemoveAfterMinutes));
+        for (int i = 0; i <= _playbackIndex; i++)
+        {
+            if (_frames[i].Time < from) continue;
+            ApplyFrame(_frames[i]);
+        }
+        if (selectedBssid != null && _byBssid.TryGetValue(selectedBssid, out var ap))
+            SelectedAccessPoint = ap;
+    }
+
+    private void ApplyFrame(RecordedFrame frame)
+    {
+        var result = new ScanResult { ConnectedBssid = frame.ConnectedBssid };
+        result.Networks.AddRange(frame.Networks);
+        _playbackNow = frame.Time;
+        Apply(result, frame.Time);
+        foreach (var ap in AccessPoints) ap.RefreshTime(frame.Time);
+        OnPropertyChanged(nameof(GraphNow));
+    }
+
+    private void PlaybackStep()
+    {
+        if (_frames == null || _playbackIndex >= PlaybackMax)
+        {
+            IsPlaying = false;
+            return;
+        }
+        PlaybackIndex = _playbackIndex + 1;
+    }
+
+    // ---- Site survey ----
+
+    /// <summary>Runs one fresh scan for a survey measurement and returns only BSSIDs heard during it.</summary>
+    public async Task<ScanResult?> MeasureAsync()
+    {
+        var scanner = _scanner;
+        var iface = SelectedInterface;
+        if (scanner == null || iface == null) return null;
+        var started = DateTime.UtcNow.AddSeconds(-1);
+        try
+        {
+            await Task.Run(() => scanner.TriggerScan(iface.Id));
+        }
+        catch (WlanException)
+        {
+            // A scan may already be running; its results are just as good.
+        }
+        await Task.Delay(4000);
+        try
+        {
+            var result = await Task.Run(() => scanner.Read(iface.Id));
+            result.Networks.RemoveAll(n => n.ObservedUtc is DateTime t && t < started);
+            return result;
+        }
+        catch (WlanException ex)
+        {
+            ErrorText = ex.Message;
+            return null;
+        }
+    }
+
     public void Dispose()
     {
+        _playTimer.Stop();
+        _recorder?.Dispose();
         _cts.Cancel();
         _clock.Stop();
         _scanner?.Dispose();

@@ -98,6 +98,8 @@
                     <TextBlock Text="•••" FontSize="11" Margin="0,-2,0,0" />
                     <Button.ContextMenu>
                         <ContextMenu x:Name="MainMenu" Placement="Bottom">
+                            <MenuItem Header="{Binding RecordMenuText}" Command="{Binding ToggleRecordCommand}" />
+                            <MenuItem Header="Open recording…" Command="{Binding OpenRecordingCommand}" />
                             <MenuItem Header="Export to CSV…" Command="{Binding ExportCommand}" />
                             <Separator />
                             <MenuItem Header="Group by access point" IsCheckable="True" IsChecked="{Binding GroupByAccessPoint}" />
@@ -155,8 +157,25 @@
             </Grid>
         </Border>
 
+        <!-- Playback bar (replaces the connection strip while a recording is open) -->
+        <Border Grid.Row="3" Margin="16,0,16,8" Padding="12,0" Height="38" CornerRadius="8" BorderThickness="1"
+                Background="{DynamicResource InfoBannerBg}" BorderBrush="{DynamicResource InfoBannerLine}"
+                Visibility="{Binding IsPlayback, Converter={StaticResource BoolToVis}}">
+            <DockPanel VerticalAlignment="Center">
+                <TextBlock DockPanel.Dock="Left" VerticalAlignment="Center" FontWeight="SemiBold" Margin="0,0,12,0">
+                    <Run Text="Playback:" /><Run Text=" " /><Run Text="{Binding PlaybackFile, Mode=OneWay}" />
+                </TextBlock>
+                <Button DockPanel.Dock="Left" Content="{Binding PlayButtonText}" Command="{Binding PlayPauseCommand}" Height="26" Width="64" Padding="0" Margin="0,0,12,0" />
+                <Button DockPanel.Dock="Right" Content="Exit playback" Command="{Binding ExitPlaybackCommand}" Height="26" Padding="10,0" Margin="12,0,0,0" />
+                <TextBlock DockPanel.Dock="Right" Text="{Binding PlaybackTimeText}" VerticalAlignment="Center" Margin="12,0,0,0" />
+                <Slider Minimum="0" Maximum="{Binding PlaybackMax}" Value="{Binding PlaybackIndex}" IsSnapToTickEnabled="True"
+                        TickFrequency="1" SmallChange="1" LargeChange="10" VerticalAlignment="Center" />
+            </DockPanel>
+        </Border>
+
         <!-- Connection strip -->
-        <Border Grid.Row="3" Margin="16,0,16,8" Padding="12,0" Height="38" Style="{StaticResource Card}" DataContext="{Binding Connection}">
+        <Border Grid.Row="3" Margin="16,0,16,8" Padding="12,0" Height="38" Style="{StaticResource Card}" DataContext="{Binding Connection}"
+                Visibility="{Binding DataContext.ShowConnectionStrip, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource BoolToVis}}">
             <Grid>
                 <TextBlock Text="Not connected to a Wi-Fi network" Foreground="{DynamicResource TextMuted}" VerticalAlignment="Center"
                            Visibility="{Binding IsConnected, Converter={x:Static local:InverseBoolToVisibilityConverter.Instance}}" />
@@ -190,7 +209,7 @@
         <Border Grid.Row="4" Margin="16,0,16,0" Style="{StaticResource Card}" ClipToBounds="True">
             <DataGrid x:Name="NetworkGrid" ItemsSource="{Binding View}" SelectedItem="{Binding SelectedAccessPoint, Mode=TwoWay}"
                       ColumnHeaderStyle="{StaticResource ColumnHeaderWithMenu}"
-                      VirtualizingPanel.IsVirtualizingWhenGrouping="True"
+                      MinColumnWidth="40"
                       SelectionChanged="OnNetworkSelectionChanged">
                 <DataGrid.Resources>
                     <SolidColorBrush x:Key="{x:Static SystemColors.ControlBrushKey}" Color="Transparent" />
@@ -234,7 +253,7 @@
                     </GroupStyle>
                 </DataGrid.GroupStyle>
                 <DataGrid.Columns>
-                    <DataGridTemplateColumn Header="!" SortMemberPath="IssueSeverity" Width="34" CanUserResize="False"
+                    <DataGridTemplateColumn Header="!" SortMemberPath="IssueSeverity" Width="34" MinWidth="34" CanUserResize="False"
                                             CellTemplate="{StaticResource SeverityBadge}" />
 
                     <DataGridTemplateColumn Header="Signal" SortMemberPath="Rssi" Width="112">
@@ -293,7 +312,7 @@
                     <DataGridTextColumn Header="AP uptime" Binding="{Binding UptimeText, Mode=OneWay}" SortMemberPath="UptimeSort" Width="96" />
                     <DataGridTextColumn Header="Last seen" Binding="{Binding LastSeenText, Mode=OneWay}" SortMemberPath="LastSeen" Width="80" Visibility="Collapsed" />
                     <DataGridTextColumn Header="Country" Binding="{Binding Country, Mode=OneWay}" Width="62" Visibility="Collapsed" />
-                    <DataGridTextColumn Header="Device" Binding="{Binding Device, Mode=OneWay}" Width="*" MinWidth="110" />
+                    <DataGridTextColumn Header="Device" Binding="{Binding Device, Mode=OneWay}" Width="220" />
                 </DataGrid.Columns>
             </DataGrid>
         </Border>
@@ -343,7 +362,7 @@
                             <ToggleButton Style="{StaticResource Chip}" Margin="8,0,0,0" Height="30" Content="Selected network only"
                                           IsChecked="{Binding HistorySelectedOnly}" />
                         </StackPanel>
-                        <controls:SignalHistoryGraph Grid.Row="1" Minutes="{Binding HistoryMinutes}" SelectedOnly="{Binding HistorySelectedOnly}"
+                        <controls:SignalHistoryGraph Grid.Row="1" Now="{Binding GraphNow}" Minutes="{Binding HistoryMinutes}" SelectedOnly="{Binding HistorySelectedOnly}"
                                                      Items="{Binding View}" Selected="{Binding SelectedAccessPoint}" Revision="{Binding Revision}" />
                     </Grid>
                 </TabItem>
@@ -435,7 +454,11 @@
 
         <!-- Status bar -->
         <Grid Grid.Row="7" Margin="18,6,18,8">
-            <TextBlock Text="{Binding StatusText}" Foreground="{DynamicResource TextMuted}" FontSize="12" />
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="{Binding StatusText}" Foreground="{DynamicResource TextMuted}" FontSize="12" />
+                <TextBlock Text="{Binding RecordingText}" Foreground="{DynamicResource Critical}" FontSize="12" FontWeight="SemiBold" Margin="14,0,0,0"
+                           Visibility="{Binding IsRecording, Converter={StaticResource BoolToVis}}" />
+            </StackPanel>
             <TextBlock HorizontalAlignment="Right" Foreground="{DynamicResource TextMuted}" FontSize="12">
                 <Run Text="Vendor DB: " /><Run Text="{Binding OuiCount, Mode=OneWay, StringFormat={}{0:N0}}" /><Run Text=" prefixes  ·  v" /><Run Text="{Binding AppVersion, Mode=OneWay}" />
             </TextBlock>

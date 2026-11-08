@@ -79,11 +79,12 @@ public sealed class ChannelGraph : GraphBase
                     ?? new List<AccessPointViewModel>();
         var selected = Selected as AccessPointViewModel;
 
+        var placed = new List<Rect>();
         dc.PushClip(new RectangleGeometry(new Rect(r.Left, 0, r.Width, r.Bottom)));
         foreach (var ap in items.Where(a => a != selected).OrderBy(a => a.Rssi))
-            DrawNetwork(dc, ap, FreqToX, r, false);
+            DrawNetwork(dc, ap, FreqToX, r, false, placed);
         if (selected != null && items.Contains(selected))
-            DrawNetwork(dc, selected, FreqToX, r, true);
+            DrawNetwork(dc, selected, FreqToX, r, true, placed);
         dc.Pop();
 
         if (items.Count == 0)
@@ -93,7 +94,7 @@ public sealed class ChannelGraph : GraphBase
         }
     }
 
-    private void DrawNetwork(DrawingContext dc, AccessPointViewModel ap, Func<double, double> freqToX, Rect r, bool isSelected)
+    private void DrawNetwork(DrawingContext dc, AccessPointViewModel ap, Func<double, double> freqToX, Rect r, bool isSelected, List<Rect> placed)
     {
         double half = ap.ChannelWidthMhz / 2.0;
         double left = freqToX(ap.CenterFrequencyMhz - half);
@@ -123,6 +124,15 @@ public sealed class ChannelGraph : GraphBase
         double lx = (left + right - label.Width) / 2;
         double ly = top - label.Height - 1;
         if (ly < r.Top - 12) ly = top + 2;
+        // Move the label up (or down near the top) until it no longer overlaps an already placed one.
+        var box = new Rect(lx, ly, label.Width, label.Height);
+        for (int i = 0; i < 12 && placed.Exists(p => p.IntersectsWith(box)); i++)
+        {
+            double next = box.Y - label.Height;
+            box.Y = next < r.Top - 12 ? box.Y + label.Height * (i + 2) : next;
+        }
+        placed.Add(box);
+        ly = box.Y;
         dc.DrawText(label, new Point(lx, ly));
     }
 }

@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace Wific.Wifi;
 
@@ -52,12 +53,16 @@ public sealed class BssInfo
     public bool MultiLink { get; set; }
     public string Roaming { get; set; } = "";
 
+    [JsonObjectCreationHandling(JsonObjectCreationHandling.Populate)]
     public List<InformationElement> Elements { get; } = new();
 }
 
 public sealed record InformationElement(int Id, int? ExtensionId, string Name, byte[] Data)
 {
+    [JsonIgnore]
     public string IdText => ExtensionId is int ext ? $"255/{ext}" : Id.ToString();
+    [JsonIgnore]
     public int Length => Data.Length;
+    [JsonIgnore]
     public string Hex => Convert.ToHexString(Data, 0, Math.Min(64, Data.Length)) + (Data.Length > 64 ? "…" : "");
 }

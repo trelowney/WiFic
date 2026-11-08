@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text.Json;
 
 namespace Wific;
@@ -43,6 +44,14 @@ public sealed class AppSettings
 
     public List<ColumnState> Columns { get; set; } = new();
 
+    /// <summary>
+    /// Version of the table layout the saved <see cref="Columns"/> belong to. Bump <see cref="CurrentLayoutVersion"/>
+    /// whenever columns are added, removed or resized in a new release; older layouts are then discarded.
+    /// </summary>
+    public int LayoutVersion { get; set; }
+
+    public const int CurrentLayoutVersion = 3;
+
     public static string? LoadedFrom { get; private set; }
 
     private static string PortablePath => Path.Combine(AppContext.BaseDirectory, FileName);
@@ -60,7 +69,7 @@ public sealed class AppSettings
                 var settings = JsonSerializer.Deserialize<AppSettings>(File.ReadAllText(path), Options);
                 if (settings == null) continue;
                 LoadedFrom = path;
-                settings.Normalize();
+                settings.Normalize(migrate: true);
                 return settings;
             }
             catch (IOException)
@@ -73,12 +82,12 @@ public sealed class AppSettings
             {
             }
         }
-        return new AppSettings();
+        return new AppSettings { LayoutVersion = CurrentLayoutVersion };
     }
 
     public void Save()
     {
-        Normalize();
+        Normalize(migrate: false);
         string json = JsonSerializer.Serialize(this, Options);
         foreach (var path in new[] { LoadedFrom ?? PortablePath, PortablePath, RoamingPath })
         {
@@ -98,7 +107,7 @@ public sealed class AppSettings
         }
     }
 
-    private void Normalize()
+    private void Normalize(bool migrate)
     {
         ScanIntervalSeconds = Math.Clamp(ScanIntervalSeconds, 3, 300);
         RemoveAfterMinutes = Math.Clamp(RemoveAfterMinutes, 1, 1440);
@@ -106,6 +115,22 @@ public sealed class AppSettings
         ChannelBand = Math.Clamp(ChannelBand, 0, 2);
         BottomPanelHeight = Math.Clamp(BottomPanelHeight, 160, 2000);
         Columns ??= new List<ColumnState>();
+
+        // Migration between versions: a layout from another table version is dropped, and so is a layout that
+        // contains impossible values (columns squeezed below a usable width, duplicates).
+        bool invalid = Columns.Any(c => c.Visible && c.Width > 0 && c.Width < 30)
+                       || Columns.Select(c => c.Key).Distinct(StringComparer.Ordinal).Count() != Columns.Count;
+        if ((migrate && LayoutVersion != CurrentLayoutVersion) || invalid)
+        {
+            Columns = new List<ColumnState>();
+            LayoutVersion = CurrentLayoutVersion;
+        }
+
+        if (WindowWidth is > 0 and < 600 || WindowHeight is > 0 and < 400)
+        {
+            WindowWidth = 0;
+            WindowHeight = 0;
+        }
     }
 }
 

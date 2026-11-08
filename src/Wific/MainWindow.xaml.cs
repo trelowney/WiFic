@@ -81,12 +81,13 @@ public partial class MainWindow : Window
             _settings.WindowHeight = bounds.Height;
         }
         _settings.BottomPanelHeight = BottomRow.ActualHeight;
+        _settings.LayoutVersion = AppSettings.CurrentLayoutVersion;
         _settings.Columns = NetworkGrid.Columns.Select(c => new ColumnState
         {
             Key = HeaderOf(c),
             Visible = c.Visibility == Visibility.Visible,
             DisplayIndex = c.DisplayIndex,
-            Width = c.Width.IsStar ? 0 : c.ActualWidth,
+            Width = c.Width.IsStar || c.ActualWidth < 30 ? 0 : c.ActualWidth,
         }).ToList();
         _settings.Save();
     }
@@ -103,7 +104,7 @@ public partial class MainWindow : Window
         {
             if (!byKey.TryGetValue(HeaderOf(c), out var s)) continue;
             c.Visibility = s.Visible ? Visibility.Visible : Visibility.Collapsed;
-            if (s.Width > 20 && !c.Width.IsStar) c.Width = new DataGridLength(s.Width);
+            if (s.Width >= 40 && !c.Width.IsStar) c.Width = new DataGridLength(s.Width);
         }
 
         int count = NetworkGrid.Columns.Count;

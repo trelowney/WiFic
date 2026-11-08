@@ -2,6 +2,7 @@
 // Copyright (C) 2026 trelowney
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+using System;
 using System.Collections;
 using System.Globalization;
 using System.Windows;
@@ -49,6 +50,17 @@ public abstract class GraphBase : FrameworkElement
     {
         get => GetValue(SelectedProperty);
         set => SetValue(SelectedProperty, value);
+    }
+
+    public static readonly DependencyProperty NowProperty = DependencyProperty.Register(
+        nameof(Now), typeof(DateTime?), typeof(GraphBase),
+        new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.AffectsRender));
+
+    /// <summary>Reference time of the graph; null means the current time (playback sets a past time).</summary>
+    public DateTime? Now
+    {
+        get => (DateTime?)GetValue(NowProperty);
+        set => SetValue(NowProperty, value);
     }
 
     public int Revision

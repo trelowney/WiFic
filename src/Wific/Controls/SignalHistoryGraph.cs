@@ -43,7 +43,7 @@ public sealed class SignalHistoryGraph : GraphBase
         var r = PlotArea;
         int minutes = Math.Max(1, Minutes);
         var window = TimeSpan.FromMinutes(minutes);
-        var now = DateTime.Now;
+        var now = Now ?? DateTime.Now;
         var start = now - window;
         double TimeToX(DateTime t) => r.Left + (t - start).TotalSeconds / window.TotalSeconds * r.Width;
 

@@ -35,6 +35,7 @@ public sealed class AccessPointViewModel : ObservableObject
     private TimeSpan? _uptimeBase;
     private DateTime _uptimeAt;
     private TimeSpan? _uptime;
+    private DateTime _clockNow = DateTime.Now;
 
     public AccessPointViewModel(BssInfo info, string vendor, bool vendorDerived, DateTime now)
     {
@@ -144,7 +145,7 @@ public sealed class AccessPointViewModel : ObservableObject
 
     public DateTime FirstSeen => _firstSeen;
     public DateTime LastSeen => _lastSeen;
-    public string LastSeenText => FormatAgo(DateTime.Now - _lastSeen);
+    public string LastSeenText => FormatAgo(_clockNow - _lastSeen);
 
     public string Country => _info.Country;
     public string Device
@@ -210,6 +211,7 @@ public sealed class AccessPointViewModel : ObservableObject
     /// <summary>Re-evaluates time-dependent texts (uptime, last seen).</summary>
     public void RefreshTime(DateTime now)
     {
+        _clockNow = now;
         _uptime = _uptimeBase is TimeSpan b ? b + (now - _uptimeAt) : null;
         OnPropertyChanged(nameof(UptimeText));
         OnPropertyChanged(nameof(UptimeSort));
