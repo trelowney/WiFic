@@ -120,15 +120,18 @@ public sealed class LanDevice : ObservableObject
                     .Where(s => !string.IsNullOrEmpty(s)).Distinct());
                 if (model.Length > 0) parts.Add(Upnp.Manufacturer is { Length: > 0 } m && !model.StartsWith(m, StringComparison.OrdinalIgnoreCase) ? $"{m} {model}" : model);
             }
-            if (parts.Count == 0 && Snmp?.Description is { Length: > 0 } descr) parts.Add(FirstLine(descr));
             if (Smb?.Os is { Length: > 0 } os) parts.Add(os);
             else if (Smb != null && parts.Count == 0) parts.Add("File server (SMB)");
             string? group = Smb?.Domain ?? Workgroup;
             if (group is { Length: > 0 } && !group.Equals("WORKGROUP", StringComparison.OrdinalIgnoreCase)
                 && !group.Equals(Name, StringComparison.OrdinalIgnoreCase))
                 parts.Add(group);
-            if (HttpTitle is { Length: > 0 } title && title != Name && !parts.Contains(title)) parts.Add(title);
-            else if (parts.Count == 0 && HttpServer is { Length: > 0 } server) parts.Add(server);
+            // A web page title like "Router Login" says nothing about the device; skip it.
+            if (HttpTitle is { Length: > 0 } title && title != Name && !parts.Contains(title)
+                && !Regex.IsMatch(title, @"(log ?in|sign ?in|logon|authentication)", RegexOptions.IgnoreCase))
+                parts.Add(title);
+            if (parts.Count == 0 && Snmp?.Description is { Length: > 0 } descr) parts.Add(FirstLine(descr));
+            if (parts.Count == 0 && HttpServer is { Length: > 0 } server) parts.Add(server);
             return string.Join(" · ", parts);
         }
     }
