@@ -47,6 +47,7 @@ It also finds the devices on your network (an IP scanner) and draws coverage hea
   open common ports, and works out what the device is: its name (DNS, NetBIOS, mDNS, SMB, SNMP, UPnP), model, firmware or Windows version, and a
   type such as router, switch, printer, NAS, camera, TV or phone. Web interfaces open with one click, and risky services
   (Telnet, FTP, VNC, SNMP with the default "public" community) are flagged. Port checks can be turned off for a quick ping-only scan.
+  Wi-Fi scanning pauses while you are on this page (unless you are recording), so it does not add delay to the results.
 - **Site survey heatmap**: load a floor plan (or use a blank canvas) and click where you are standing. WiFic measures
   for about 4 seconds and draws a coverage heatmap for any network and band. Surveys can be saved and exported as PNG.
 - **Recording and playback**: record a session to a `.wificrec` file and replay it later with a timeline, for example

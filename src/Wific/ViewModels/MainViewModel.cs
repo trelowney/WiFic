@@ -30,6 +30,7 @@ public sealed class MainViewModel : ObservableObject, IDisposable
     private readonly Dictionary<string, AccessPointViewModel> _byBssid = new(StringComparer.OrdinalIgnoreCase);
     private readonly DispatcherTimer _clock;
     private readonly CancellationTokenSource _cts = new();
+    private readonly SemaphoreSlim _wake = new(0, 1);
     private readonly AppSettings _settings;
     private IWifiScanner? _scanner;
     private OuiDatabase _oui = new();
@@ -417,6 +418,7 @@ public sealed class MainViewModel : ObservableObject, IDisposable
             OnPropertyChanged(nameof(IsWifiPage));
             OnPropertyChanged(nameof(IsSurveyPage));
             OnPropertyChanged(nameof(IsLanPage));
+            if (value == 0) WakeScanLoop();
             if (value == 2) _ = Lan.PrepareAsync();
         }
     }
@@ -572,7 +574,7 @@ public sealed class MainViewModel : ObservableObject, IDisposable
         {
             var started = DateTime.Now;
             var iface = SelectedInterface;
-            if (!IsPaused && !IsPlayback && iface != null && _scanner != null)
+            if (!IsPaused && !IsPlayback && ScanningAllowed && iface != null && _scanner != null)
             {
                 if (_resetPending) Clear();
                 IsScanning = true;
@@ -606,7 +608,7 @@ public sealed class MainViewModel : ObservableObject, IDisposable
             if (wait < TimeSpan.FromMilliseconds(500)) wait = TimeSpan.FromMilliseconds(500);
             try
             {
-                await Task.Delay(wait, ct);
+                await _wake.WaitAsync(wait, ct);
             }
             catch (OperationCanceledException)
             {
@@ -703,6 +705,18 @@ public sealed class MainViewModel : ObservableObject, IDisposable
         foreach (var ap in AccessPoints) ap.RefreshTime(now);
         UpdateStatus();
         if (!IsPaused && !IsPlayback) _ = PollConnectionAsync();
+    }
+
+    /// <summary>
+    /// Wi-Fi scans run only on the Wi-Fi networks page (or while recording). A scan makes the adapter leave its channel
+    /// for a moment, which would add delay and packet loss to the network device scan.
+    /// </summary>
+    private bool ScanningAllowed => _page == 0 || IsRecording;
+
+    /// <summary>Ends the wait between scans so the next one starts now.</summary>
+    private void WakeScanLoop()
+    {
+        if (_wake.CurrentCount == 0) _wake.Release();
     }
 
     private void UpdateStatus()
@@ -1063,5 +1077,6 @@ public sealed class MainViewModel : ObservableObject, IDisposable
         _clock.Stop();
         _scanner?.Dispose();
         _cts.Dispose();
+        _wake.Dispose();
     }
 }
