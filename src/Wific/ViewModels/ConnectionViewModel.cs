@@ -1,4 +1,4 @@
-// wific - Wi-Fi network scanner for Windows
+// WiFic - Wi-Fi network scanner for Windows
 // Copyright (C) 2026 trelowney
 // SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -72,7 +72,7 @@ public sealed class ConnectionViewModel : ObservableObject
     {
         get
         {
-            if (Roams.Count == 0) return "wific records every change of access point (BSSID) while it is running.";
+            if (Roams.Count == 0) return "WiFic records every change of access point (BSSID) while it is running.";
             var sb = new StringBuilder("Recent roaming events:");
             foreach (var r in Roams.AsEnumerable().Reverse().Take(8))
                 sb.Append(CultureInfo.InvariantCulture, $"\n{r.Time:HH:mm:ss}  {r.From} → {r.To}");

@@ -1,4 +1,4 @@
-// wific - Wi-Fi network scanner for Windows
+// WiFic - Wi-Fi network scanner for Windows
 // Copyright (C) 2026 trelowney
 // SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -22,7 +22,7 @@ using System.Xml.Linq;
 
 namespace Wific.Net;
 
-/// <summary>The local IPv4 network wific is connected to.</summary>
+/// <summary>The local IPv4 network WiFic is connected to.</summary>
 public sealed record LanNetwork(
     string AdapterName, bool IsWireless, IPAddress Local, int Prefix, IPAddress? Gateway, byte[] LocalMac,
     IReadOnlyList<IPAddress> Hosts, bool Limited)
@@ -96,7 +96,7 @@ public static class LanProbes
                 }
                 if (prefix < 16)
                 {
-                    error = $"“{item}” is too large. The largest network wific scans at once is a /16 (65,536 addresses).";
+                    error = $"“{item}” is too large. The largest network WiFic scans at once is a /16 (65,536 addresses).";
                     return null;
                 }
                 uint mask = prefix == 0 ? 0 : uint.MaxValue << (32 - prefix);

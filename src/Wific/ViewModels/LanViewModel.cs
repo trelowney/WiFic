@@ -1,4 +1,4 @@
-// wific - Wi-Fi network scanner for Windows
+// WiFic - Wi-Fi network scanner for Windows
 // Copyright (C) 2026 trelowney
 // SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -169,7 +169,7 @@ public sealed class LanViewModel : ObservableObject
             }
             if (cidr != null)
                 StatusText = string.Create(CultureInfo.InvariantCulture,
-                    $"Scan finished: {Devices.Count} devices on {cidr} in {(DateTime.Now - started).TotalSeconds:0} s. Select a device to see everything wific found out about it.");
+                    $"Scan finished: {Devices.Count} devices on {cidr} in {(DateTime.Now - started).TotalSeconds:0} s. Select a device to see everything WiFic found out about it.");
         }
         catch (OperationCanceledException)
         {
@@ -364,7 +364,7 @@ public sealed class LanViewModel : ObservableObject
 
         private static readonly Fake[] Devices =
         {
-            new(1, "04:D9:F5:3A:7C:0F", 1, new[] { 53, 80, 443 }, Dns: "router.lan", Upnp: new UpnpInfo("Maple-Router", "ASUSTeK Computer Inc.", "Wi-Fi 7 Router", null), Title: "Router Login", Gateway: true),
+            new(1, "64:D1:54:3A:7C:0F", 1, new[] { 22, 53, 80, 443 }, Dns: "maple-router.lan", Title: "RouterOS router configuration page", Gateway: true),
             new(2, "50:C7:BF:21:9E:04", 1, new[] { 22, 80 }, Dns: "core-switch.lan", Title: "Switch Login", Snmp: new SnmpInfo("core-switch", "24-Port Gigabit L2+ Managed Switch, firmware 2.1.4", "Hallway rack")),
             new(10, "8C:8D:28:41:22:9A", 0, new[] { 139, 445 }, NetBios: "WORKSTATION", Group: "WORKGROUP", Smb: new SmbInfo("WORKSTATION", "workstation", "WORKSTATION", "Windows 10.0.26100"), Self: true),
             new(11, "A4:BB:6D:10:5E:02", 2, new[] { 139, 445, 3389 }, Dns: "office-pc.lan", NetBios: "OFFICE-PC", Group: "WORKGROUP", Smb: new SmbInfo("OFFICE-PC", "office-pc", "WORKGROUP", "Windows 10.0.22631")),

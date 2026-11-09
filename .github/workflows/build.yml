@@ -91,4 +91,4 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           $files = (Get-ChildItem dist/*.exe).FullName
-          gh release create $env:GITHUB_REF_NAME @files --repo $env:GITHUB_REPOSITORY --title "wific $env:GITHUB_REF_NAME" --generate-notes
+          gh release create $env:GITHUB_REF_NAME @files --repo $env:GITHUB_REPOSITORY --title "WiFic $env:GITHUB_REF_NAME" --generate-notes

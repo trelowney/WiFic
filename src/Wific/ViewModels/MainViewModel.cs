@@ -1,4 +1,4 @@
-// wific - Wi-Fi network scanner for Windows
+// WiFic - Wi-Fi network scanner for Windows
 // Copyright (C) 2026 trelowney
 // SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -451,7 +451,7 @@ public sealed class MainViewModel : ObservableObject, IDisposable
     // ---- Updates ----
 
     public bool HasUpdate => _update != null;
-    public string UpdateText => _update == null ? "" : $"wific {_update.Tag} is available - you are running {AppVersion}.";
+    public string UpdateText => _update == null ? "" : $"WiFic {_update.Tag} is available - you are running {AppVersion}.";
 
     public bool IsUpdating
     {
@@ -905,7 +905,7 @@ public sealed class MainViewModel : ObservableObject, IDisposable
 
         var dialog = new SaveFileDialog
         {
-            Filter = "wific recording (*.wificrec)|*.wificrec",
+            Filter = "WiFic recording (*.wificrec)|*.wificrec",
             FileName = $"wific-{DateTime.Now:yyyyMMdd-HHmmss}.wificrec",
         };
         if (dialog.ShowDialog() != true) return;
@@ -938,7 +938,7 @@ public sealed class MainViewModel : ObservableObject, IDisposable
 
     private void OpenRecording()
     {
-        var dialog = new OpenFileDialog { Filter = "wific recording (*.wificrec)|*.wificrec" };
+        var dialog = new OpenFileDialog { Filter = "WiFic recording (*.wificrec)|*.wificrec" };
         if (dialog.ShowDialog() != true) return;
 
         List<RecordedFrame> frames;

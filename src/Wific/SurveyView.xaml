@@ -1,5 +1,5 @@
 <!--
-  wific - Wi-Fi network scanner for Windows
+  WiFic - Wi-Fi network scanner for Windows
   Copyright (C) 2026 trelowney
   SPDX-License-Identifier: GPL-3.0-or-later
 -->
@@ -44,7 +44,7 @@
                     <TextBlock Text="Site survey" FontSize="20" FontWeight="Bold" HorizontalAlignment="Center" />
                     <TextBlock TextWrapping="Wrap" TextAlignment="Center" Foreground="{DynamicResource TextMuted}" Margin="0,10,0,16">
                         Load a floor plan (or use a blank canvas), walk around and click the spot where you are standing.
-                        wific measures there for about 4 seconds. The more points you take, the more accurate the heatmap.
+                        WiFic measures there for about 4 seconds. The more points you take, the more accurate the heatmap.
                     </TextBlock>
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                         <Button Content="Load floor plan…" Style="{StaticResource AccentButton}" Click="OnLoadPlanClick" Margin="0,0,8,0" />

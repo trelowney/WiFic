@@ -17,13 +17,14 @@
     <MSBuildTreatWarningsAsErrors>true</MSBuildTreatWarningsAsErrors>
 
     <Version>0.0.0-dev</Version>
-    <Product>wific</Product>
+    <Product>WiFic</Product>
+    <AssemblyTitle>WiFic</AssemblyTitle>
     <Company>trelowney</Company>
     <Authors>trelowney</Authors>
-    <Description>Free Wi-Fi network scanner for Windows (2.4 / 5 / 6 GHz)</Description>
+    <Description>Free Wi-Fi network and IP scanner for Windows (2.4 / 5 / 6 GHz)</Description>
     <Copyright>Copyright (C) 2026 trelowney. Licensed under GPL-3.0-or-later.</Copyright>
     <PackageLicenseExpression>GPL-3.0-or-later</PackageLicenseExpression>
-    <RepositoryUrl>https://github.com/trelowney/wific</RepositoryUrl>
+    <RepositoryUrl>https://github.com/trelowney/WiFic</RepositoryUrl>
 
     <!-- Portable single-file publish -->
     <SatelliteResourceLanguages>en</SatelliteResourceLanguages>

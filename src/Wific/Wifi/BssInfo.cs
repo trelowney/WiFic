@@ -1,4 +1,4 @@
-// wific - Wi-Fi network scanner for Windows
+// WiFic - Wi-Fi network scanner for Windows
 // Copyright (C) 2026 trelowney
 // SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -8,7 +8,7 @@ using System.Text.Json.Serialization;
 
 namespace Wific.Wifi;
 
-/// <summary>Everything wific knows about one BSSID after decoding its beacon / probe response.</summary>
+/// <summary>Everything WiFic knows about one BSSID after decoding its beacon / probe response.</summary>
 public sealed class BssInfo
 {
     public string Ssid { get; set; } = "";

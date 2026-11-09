@@ -1,4 +1,4 @@
-// wific - Wi-Fi network scanner for Windows
+// WiFic - Wi-Fi network scanner for Windows
 // Copyright (C) 2026 trelowney
 // SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -12,7 +12,7 @@ using Wific.Native;
 namespace Wific.Wifi;
 
 /// <summary>
-/// Made-up networks for screenshots and demos (start wific with <c>--demo</c>). Network names are invented and
+/// Made-up networks for screenshots and demos (start WiFic with <c>--demo</c>). Network names are invented and
 /// only the vendor prefixes of the MAC addresses are real, so nothing here describes a real place.
 /// </summary>
 public sealed class DemoScanner : IWifiScanner
@@ -28,13 +28,13 @@ public sealed class DemoScanner : IWifiScanner
 
     private static readonly Device[] Devices =
     {
-        new(new byte[] { 0x04, 0xD9, 0xF5, 0x3A }, 79.4, "CZ", new Radio[]
+        new(new byte[] { 0x64, 0xD1, 0x54, 0x3A }, 79.4, "CZ", new Radio[]
         {
             new("Maple-Home", 0x10, false, WifiBand.Band2_4, 6, 20, 6, "Wi-Fi 7", "802.11be", 2, 688, "WPA2/WPA3-Personal", "CCMP", "Capable", -48, 6, 18),
             new("Maple-Guest", 0x11, true, WifiBand.Band2_4, 6, 20, 6, "Wi-Fi 7", "802.11be", 2, 688, "WPA2-Personal", "CCMP", "Capable", -49, 1, 18),
             new("Maple-Home", 0x14, false, WifiBand.Band5, 36, 160, 50, "Wi-Fi 7", "802.11be", 2, 2882, "WPA2/WPA3-Personal", "CCMP", "Capable", -44, 9, 12, true),
-            new("Maple-Home", 0x18, false, WifiBand.Band6, 37, 320, 31, "Wi-Fi 7", "802.11be", 2, 5765, "WPA3-Personal", "GCMP-256, CCMP", "Required", -58, 2, 3, true),
-        }, WpsName: "Home router"),
+            new("Maple-Home", 0x18, false, WifiBand.Band6, 37, 160, 47, "Wi-Fi 7", "802.11be", 2, 2882, "WPA3-Personal", "GCMP-256, CCMP", "Required", -58, 2, 3, true),
+        }, WpsName: "hAP be³ Media"),
         new(new byte[] { 0x50, 0xC7, 0xBF, 0x8E }, 412.2, "CZ", new Radio[]
         {
             new("Kowalski", 0x02, false, WifiBand.Band2_4, 1, 20, 1, "Wi-Fi 6", "802.11ax", 2, 574, "WPA2-Personal", "CCMP", "No", -67, 4, 41),

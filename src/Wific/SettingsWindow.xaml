@@ -1,12 +1,12 @@
 <!--
-  wific - Wi-Fi network scanner for Windows
+  WiFic - Wi-Fi network scanner for Windows
   Copyright (C) 2026 trelowney
   SPDX-License-Identifier: GPL-3.0-or-later
 -->
 <Window x:Class="Wific.SettingsWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="wific – Settings"
+        Title="WiFic – Settings"
         Width="560" Height="720" MinWidth="480" MinHeight="480"
         WindowStartupLocation="CenterOwner" ShowInTaskbar="False" ResizeMode="CanResizeWithGrip"
         Background="{DynamicResource Bg}" Foreground="{DynamicResource TextMain}"
@@ -95,7 +95,7 @@
                 <Border Style="{StaticResource Card}" Padding="18,12,18,14">
                     <StackPanel>
                         <TextBlock Text="ABOUT" Style="{StaticResource SectionTitle}" />
-                        <TextBlock FontSize="15" FontWeight="SemiBold"><Run Text="wific " /><Run Text="{Binding AppVersion, Mode=OneWay}" /></TextBlock>
+                        <TextBlock FontSize="15" FontWeight="SemiBold"><Run Text="WiFic " /><Run Text="{Binding AppVersion, Mode=OneWay}" /></TextBlock>
                         <TextBlock Text="Free Wi-Fi network scanner for Windows." Foreground="{DynamicResource TextMuted}" Margin="0,2,0,10" />
                         <TextBlock Text="Copyright © 2026 trelowney" />
                         <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource TextMuted}" FontSize="12" Margin="0,8,0,0">
@@ -104,7 +104,7 @@
                             License, or (at your option) any later version. This program comes with ABSOLUTELY NO WARRANTY.
                         </TextBlock>
                         <TextBlock Margin="0,10,0,0">
-                            <Hyperlink NavigateUri="https://github.com/trelowney/wific" RequestNavigate="OnLinkClick" Foreground="{DynamicResource Accent}">github.com/trelowney/wific</Hyperlink>
+                            <Hyperlink NavigateUri="https://github.com/trelowney/WiFic" RequestNavigate="OnLinkClick" Foreground="{DynamicResource Accent}">github.com/trelowney/WiFic</Hyperlink>
                             <Run Text="  ·  " Foreground="{DynamicResource TextMuted}" />
                             <Hyperlink NavigateUri="https://www.gnu.org/licenses/gpl-3.0.html" RequestNavigate="OnLinkClick" Foreground="{DynamicResource Accent}">GPL-3.0 license</Hyperlink>
                         </TextBlock>

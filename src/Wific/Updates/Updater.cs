@@ -1,4 +1,4 @@
-// wific - Wi-Fi network scanner for Windows
+// WiFic - Wi-Fi network scanner for Windows
 // Copyright (C) 2026 trelowney
 // SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -24,7 +24,7 @@ public sealed record UpdateInfo(Version Version, string Tag, string PageUrl, str
 /// </summary>
 public static class Updater
 {
-    public const string Repository = "trelowney/wific";
+    public const string Repository = "trelowney/WiFic";
     public const string ProjectUrl = "https://github.com/" + Repository;
     public const string ReleasesUrl = ProjectUrl + "/releases/latest";
 

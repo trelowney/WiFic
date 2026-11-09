@@ -1,4 +1,4 @@
-// wific - Wi-Fi network scanner for Windows
+// WiFic - Wi-Fi network scanner for Windows
 // Copyright (C) 2026 trelowney
 // SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -22,9 +22,9 @@ public static class DemoSurvey
 
     private static readonly Source[] Sources =
     {
-        new("Maple-Home", "04:D9:F5:3A:7C:10", WifiBand.Band2_4, 6, 430, 330, -33, 2.7),
-        new("Maple-Home", "04:D9:F5:3A:7C:14", WifiBand.Band5, 36, 430, 330, -37, 3.0),
-        new("Maple-Home", "04:D9:F5:3A:7C:18", WifiBand.Band6, 37, 430, 330, -41, 3.3),
+        new("Maple-Home", "64:D1:54:3A:7C:10", WifiBand.Band2_4, 6, 430, 330, -33, 2.7),
+        new("Maple-Home", "64:D1:54:3A:7C:14", WifiBand.Band5, 36, 430, 330, -37, 3.0),
+        new("Maple-Home", "64:D1:54:3A:7C:18", WifiBand.Band6, 37, 430, 330, -41, 3.3),
         new("Kowalski", "50:C7:BF:8E:7C:02", WifiBand.Band2_4, 1, 1900, 1150, -40, 2.6),
         new("Garden Flat", "3C:A6:2F:71:7C:20", WifiBand.Band2_4, 6, -300, 1200, -40, 2.6),
     };

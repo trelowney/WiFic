@@ -1,21 +1,21 @@
 <p align="center">
-  <img src="docs/logo.png" width="96" alt="wific logo">
+  <img src="docs/logo.png" width="96" alt="WiFic logo">
 </p>
 
-<h1 align="center">wific</h1>
+<h1 align="center">WiFic</h1>
 
 <p align="center">
   Free, portable Wi-Fi network scanner for Windows: 2.4 GHz, 5 GHz and 6 GHz.<br>
-  <a href="https://github.com/trelowney/wific/releases/latest"><b>Download the latest release</b></a>
+  <a href="https://github.com/trelowney/WiFic/releases/latest"><b>Download the latest release</b></a>
 </p>
 
 <p align="center">
-  <img src="docs/screenshots/networks.png" alt="wific: Wi-Fi networks grouped by access point, with the channel graph" width="100%">
+  <img src="docs/screenshots/networks.png" alt="WiFic: Wi-Fi networks grouped by access point, with the channel graph" width="100%">
 </p>
 
 ---
 
-wific shows every access point (BSSID) around you and decodes its beacon to show the details that usually need a
+WiFic shows every access point (BSSID) around you and decodes its beacon to show the details that usually need a
 paid tool: real channel width, AP uptime, vendor, Wi-Fi generation, security, client count and channel load.
 It also finds the devices on your network (an IP scanner) and draws coverage heatmaps on a floor plan.
 
@@ -47,13 +47,13 @@ It also finds the devices on your network (an IP scanner) and draws coverage hea
   open common ports, and works out what the device is: its name (DNS, NetBIOS, mDNS, SMB, SNMP, UPnP), model, firmware or Windows version, and a
   type such as router, switch, printer, NAS, camera, TV or phone. Web interfaces open with one click, and risky services
   (Telnet, FTP, VNC, SNMP with the default "public" community) are flagged. Port checks can be turned off for a quick ping-only scan.
-- **Site survey heatmap**: load a floor plan (or use a blank canvas) and click where you are standing. wific measures
+- **Site survey heatmap**: load a floor plan (or use a blank canvas) and click where you are standing. WiFic measures
   for about 4 seconds and draws a coverage heatmap for any network and band. Surveys can be saved and exported as PNG.
 - **Recording and playback**: record a session to a `.wificrec` file and replay it later with a timeline, for example
   to compare coverage before and after moving a router.
 - **CSV export**.
 - **Portable**: a single `.exe` with no installer and no registry entries. Settings are saved in `wific.settings.json` next to the exe.
-- **Built-in updater**: wific tells you when a new release is out and can replace itself in one click.
+- **Built-in updater**: WiFic tells you when a new release is out and can replace itself in one click.
 
 ## Screenshots
 
@@ -76,16 +76,16 @@ The screenshots use made-up networks and devices.
 - A Wi-Fi adapter. 6 GHz scanning needs a Wi-Fi 6E / 7 adapter with a current driver.
 - **Windows 11 24H2 and later:** Windows only gives scan results to desktop apps when **Location services** are on.
   Go to *Settings → Privacy & security → Location* and turn on both *Location services* and *Let desktop apps access your location*.
-  wific shows a button that opens that page when access is blocked. wific never reads or stores your location.
+  WiFic shows a button that opens that page when access is blocked. WiFic never reads or stores your location.
 
 ## Download
 
 Get `wific-win-x64.exe` (or `wific-win-arm64.exe`) from
-[Releases](https://github.com/trelowney/wific/releases/latest) and run it. No installation is needed.
+[Releases](https://github.com/trelowney/WiFic/releases/latest) and run it. No installation is needed.
 
 ## How it works
 
-wific uses the Windows Native Wifi API (`wlanapi.dll`). It requests a scan (`WlanScan`), reads the BSS list
+WiFic uses the Windows Native Wifi API (`wlanapi.dll`). It requests a scan (`WlanScan`), reads the BSS list
 (`WlanGetNetworkBssList`) and parses the 802.11 information elements of each beacon or probe response itself.
 No administrator rights, drivers or monitor mode are needed.
 
@@ -104,8 +104,8 @@ dotnet publish src/Wific/Wific.csproj -c Release -r win-x64 --self-contained -p:
 
 Copyright © 2026 trelowney
 
-wific is free software, licensed under the **GNU General Public License v3.0 or later** ([LICENSE](LICENSE)).
-You may use, study, share and modify it. If you distribute wific or a modified version, you must keep the copyright
+WiFic is free software, licensed under the **GNU General Public License v3.0 or later** ([LICENSE](LICENSE)).
+You may use, study, share and modify it. If you distribute WiFic or a modified version, you must keep the copyright
 notice and credit this project, and you must release your source code under the same license.
 
 The MAC vendor data comes from the IEEE registration authority, via the Wireshark `manuf` file.

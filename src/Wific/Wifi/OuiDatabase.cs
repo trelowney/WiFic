@@ -1,4 +1,4 @@
-// wific - Wi-Fi network scanner for Windows
+// WiFic - Wi-Fi network scanner for Windows
 // Copyright (C) 2026 trelowney
 // SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -70,16 +70,24 @@ public sealed class OuiDatabase
         table[value >> (48 - bits)] = name;
     }
 
+    /// <summary>Registry names that do not say which brand it is.</summary>
+    private static readonly Dictionary<string, string> Aliases = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["Routerboard.com"] = "MikroTik",
+        ["Mikrotikls SIA"] = "MikroTik",
+    };
+
     public string? Lookup(byte[] mac)
     {
         if (mac.Length < 6) return null;
         long value = 0;
         for (int i = 0; i < 6; i++) value = (value << 8) | mac[i];
 
-        if (_s36.TryGetValue(value >> 12, out var s)) return s;
-        if (_m28.TryGetValue(value >> 20, out var m)) return m;
-        if (_l24.TryGetValue(value >> 24, out var l)) return l;
-        return null;
+        string? name = _s36.TryGetValue(value >> 12, out var s) ? s
+            : _m28.TryGetValue(value >> 20, out var m) ? m
+            : _l24.TryGetValue(value >> 24, out var l) ? l
+            : null;
+        return name == null ? null : Aliases.TryGetValue(name, out var alias) ? alias : name;
     }
 
     /// <summary>

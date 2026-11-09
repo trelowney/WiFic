@@ -1,4 +1,4 @@
-// wific - Wi-Fi network scanner for Windows
+// WiFic - Wi-Fi network scanner for Windows
 // Copyright (C) 2026 trelowney
 // SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -75,7 +75,7 @@ public partial class SurveyView : UserControl
     private bool ConfirmDiscard()
     {
         if (!_dirty || _project == null || _project.Points.Count == 0) return true;
-        var answer = MessageBox.Show(HostWindow, "Save the current survey first?", "wific – Site survey",
+        var answer = MessageBox.Show(HostWindow, "Save the current survey first?", "WiFic – Site survey",
             MessageBoxButton.YesNoCancel, MessageBoxImage.Question);
         if (answer == MessageBoxResult.Cancel) return false;
         if (answer == MessageBoxResult.Yes) return SaveAs();
@@ -130,7 +130,7 @@ public partial class SurveyView : UserControl
     private void OnOpenClick(object sender, RoutedEventArgs e)
     {
         if (_measuring || !ConfirmDiscard()) return;
-        var dialog = new OpenFileDialog { Filter = "wific survey (*.wificsurvey)|*.wificsurvey" };
+        var dialog = new OpenFileDialog { Filter = "WiFic survey (*.wificsurvey)|*.wificsurvey" };
         if (dialog.ShowDialog(HostWindow) != true) return;
         try
         {
@@ -151,7 +151,7 @@ public partial class SurveyView : UserControl
         if (_project == null) return false;
         var dialog = new SaveFileDialog
         {
-            Filter = "wific survey (*.wificsurvey)|*.wificsurvey",
+            Filter = "WiFic survey (*.wificsurvey)|*.wificsurvey",
             FileName = $"wific-survey-{DateTime.Now:yyyyMMdd-HHmm}.wificsurvey",
         };
         if (dialog.ShowDialog(HostWindow) != true) return false;
@@ -351,6 +351,6 @@ public partial class SurveyView : UserControl
     private void ShowError(string message)
     {
         StatusText.Text = message;
-        MessageBox.Show(HostWindow, message, "wific – Site survey", MessageBoxButton.OK, MessageBoxImage.Warning);
+        MessageBox.Show(HostWindow, message, "WiFic – Site survey", MessageBoxButton.OK, MessageBoxImage.Warning);
     }
 }

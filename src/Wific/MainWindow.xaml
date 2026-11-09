@@ -1,5 +1,5 @@
 <!--
-  wific - Wi-Fi network scanner for Windows
+  WiFic - Wi-Fi network scanner for Windows
   Copyright (C) 2026 trelowney
   SPDX-License-Identifier: GPL-3.0-or-later
 -->
@@ -9,7 +9,7 @@
         xmlns:local="clr-namespace:Wific"
         xmlns:controls="clr-namespace:Wific.Controls"
         xmlns:vm="clr-namespace:Wific.ViewModels"
-        Title="wific – Wi-Fi scanner"
+        Title="WiFic – Wi-Fi scanner"
         Width="1400" Height="840" MinWidth="900" MinHeight="560"
         WindowStartupLocation="CenterScreen"
         Background="{DynamicResource Bg}" Foreground="{DynamicResource TextMain}"
@@ -70,7 +70,7 @@
                           HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,3,0,0"
                           Data="M0,5.5 A10,10 0 0 1 16,5.5 M3,8.5 A6,6 0 0 1 13,8.5 M6.2,11.5 A2.4,2.4 0 0 1 9.8,11.5" />
                 </Border>
-                <TextBlock Text="wific" FontSize="19" FontWeight="Bold" Margin="10,0,0,1" VerticalAlignment="Center" />
+                <TextBlock Text="WiFic" FontSize="19" FontWeight="Bold" Margin="10,0,0,1" VerticalAlignment="Center" />
                 <Border Style="{StaticResource SegmentHost}" Margin="20,0,0,0" VerticalAlignment="Center">
                     <StackPanel Orientation="Horizontal">
                         <RadioButton Style="{StaticResource Segment}" GroupName="Page" Content="Wi-Fi networks" IsChecked="{Binding IsWifiPage}"

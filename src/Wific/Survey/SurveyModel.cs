@@ -1,4 +1,4 @@
-// wific - Wi-Fi network scanner for Windows
+// WiFic - Wi-Fi network scanner for Windows
 // Copyright (C) 2026 trelowney
 // SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -44,7 +44,7 @@ public sealed class SurveyProject
     public static SurveyProject Load(string path)
     {
         var project = JsonSerializer.Deserialize<SurveyProject>(File.ReadAllBytes(path), Options)
-                      ?? throw new InvalidDataException("The file is not a wific survey.");
+                      ?? throw new InvalidDataException("The file is not a WiFic survey.");
         if (project.Image.Length == 0) throw new InvalidDataException("The survey does not contain a floor plan.");
         project.Points ??= new List<SurveyPoint>();
         return project;

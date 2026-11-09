@@ -1,4 +1,4 @@
-# wific - refreshes the embedded MAC vendor database (IEEE registry via Wireshark "manuf").
+# WiFic - refreshes the embedded MAC vendor database (IEEE registry via Wireshark "manuf").
 # Copyright (C) 2026 trelowney
 # SPDX-License-Identifier: GPL-3.0-or-later
 #
