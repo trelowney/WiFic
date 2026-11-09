@@ -52,6 +52,7 @@ public sealed class LanDevice : ObservableObject
     public string? MdnsName { get; set; }
     public SmbInfo? Smb { get; set; }
     public UpnpInfo? Upnp { get; set; }
+    public SnmpInfo? Snmp { get; set; }
     public string? HttpTitle { get; set; }
     public string? HttpServer { get; set; }
     public SortedSet<int> OpenPorts { get; } = new();
@@ -75,6 +76,12 @@ public sealed class LanDevice : ObservableObject
     public string PingText => PingMs is int ms ? (ms < 1 ? "<1 ms" : $"{ms} ms") : "–";
     public int PingSort => PingMs ?? int.MaxValue;
 
+    private static string FirstLine(string text)
+    {
+        string line = text.Split(new[] { (char)13, (char)10 }, StringSplitOptions.RemoveEmptyEntries).FirstOrDefault() ?? text;
+        return line.Length > 90 ? line[..90] + "…" : line;
+    }
+
     private static string ShortHost(string name)
     {
         // Strip the local DNS suffix (router.lan, nas.home, pc.fritz.box …), but keep IP-like names whole.
@@ -91,6 +98,7 @@ public sealed class LanDevice : ObservableObject
             if (NetBiosName is { Length: > 0 } nb) return nb;
             if (Smb?.Name is { Length: > 0 } smb) return smb;
             if (MdnsName is { Length: > 0 } mdns) return mdns;
+            if (Snmp?.Name is { Length: > 0 } snmp) return snmp;
             if (DnsName is { Length: > 0 } dns) return ShortHost(dns);
             if (HttpTitle is { Length: > 0 } title) return title;
             if (IsSelf) return Environment.MachineName;
@@ -112,6 +120,7 @@ public sealed class LanDevice : ObservableObject
                     .Where(s => !string.IsNullOrEmpty(s)).Distinct());
                 if (model.Length > 0) parts.Add(Upnp.Manufacturer is { Length: > 0 } m && !model.StartsWith(m, StringComparison.OrdinalIgnoreCase) ? $"{m} {model}" : model);
             }
+            if (parts.Count == 0 && Snmp?.Description is { Length: > 0 } descr) parts.Add(FirstLine(descr));
             if (Smb?.Os is { Length: > 0 } os) parts.Add(os);
             else if (Smb != null && parts.Count == 0) parts.Add("File server (SMB)");
             string? group = Smb?.Domain ?? Workgroup;
@@ -146,8 +155,10 @@ public sealed class LanDevice : ObservableObject
             {
                 var names = Services.Select(s => s.Name).Distinct().ToList();
                 if (names.Contains("SMB")) names.Remove("NetBIOS");
+                if (Snmp != null) names.Add("SNMP");
                 return string.Join(" · ", names);
             }
+            if (Snmp != null) return "SNMP";
             return PortsChecked ? "none" : IsProbing ? "…" : "–";
         }
     }
@@ -164,7 +175,7 @@ public sealed class LanDevice : ObservableObject
         if (IsGateway) return "Router / gateway";
         string text = string.Join(" ", new[]
         {
-            Name, Upnp?.Manufacturer, Upnp?.ModelName, Upnp?.ModelNumber, HttpTitle, HttpServer, MdnsName, DnsName, Vendor,
+            Name, Upnp?.Manufacturer, Upnp?.ModelName, Upnp?.ModelNumber, HttpTitle, HttpServer, MdnsName, DnsName, Vendor, Snmp?.Description,
         }.Where(s => !string.IsNullOrEmpty(s))).ToLowerInvariant();
         bool Has(params string[] words) => words.Any(w => text.Contains(w, StringComparison.Ordinal));
         bool Port(params int[] ports) => ports.Any(OpenPorts.Contains);
@@ -173,6 +184,8 @@ public sealed class LanDevice : ObservableObject
             return "Printer";
         if (Port(554) || Has("camera", "ipcam", "hikvision", "dahua", "reolink", "nvr", "doorbell"))
             return "Camera / NVR";
+        if (Has("switch", "routeros", "cisco ios", "procurve", "edgeswitch", "jetstream")) return "Network switch";
+        if (Has("access point", "unifi ap", "omada eap")) return "Access point";
         if (Port(62078) || Has("iphone", "ipad")) return "iPhone / iPad";
         if (Port(8008, 8009) || Has("chromecast", "google tv", "android tv", "nvidia shield")) return "Chromecast / TV";
         if (Has("[tv]", " tv", "bravia", "webos", "tizen", "roku", "fire tv", "television")) return "TV / media player";
@@ -204,6 +217,7 @@ public sealed class LanDevice : ObservableObject
             if (OpenPorts.Contains(21)) list.Add(new Issue(Severity.Warning, "FTP is open: files and passwords travel unencrypted."));
             if (OpenPorts.Contains(5900)) list.Add(new Issue(Severity.Warning, "VNC remote control is open: make sure it has a strong password."));
             if (OpenPorts.Contains(3389)) list.Add(new Issue(Severity.Info, "Remote Desktop is enabled on this device."));
+            if (Snmp != null) list.Add(new Issue(Severity.Warning, "SNMP answers to the default community \"public\": anyone on the network can read the device information. Change or disable it."));
             if (OpenPorts.Contains(1883)) list.Add(new Issue(Severity.Info, "MQTT broker without TLS (port 1883)."));
             if (IsNew) list.Add(new Issue(Severity.Info, "New device: not seen in the previous scan."));
             return list;
@@ -238,6 +252,8 @@ public sealed class LanDevice : ObservableObject
                 Add("SMB", string.Join("  ·  ", new[] { Smb.DnsName ?? Smb.Name, Smb.Domain, Smb.Os }.Where(s => !string.IsNullOrEmpty(s))));
             if (Upnp != null)
                 Add("UPnP", string.Join("  ·  ", new[] { Upnp.FriendlyName, Upnp.Manufacturer, Upnp.ModelName, Upnp.ModelNumber }.Where(s => !string.IsNullOrEmpty(s))));
+            if (Snmp != null)
+                Add("SNMP", string.Join("  ·  ", new[] { Snmp.Name, Snmp.Description, Snmp.Location }.Where(s => !string.IsNullOrEmpty(s))));
             Add("Web page", HttpTitle);
             Add("Web server", HttpServer);
             Add("Open ports", OpenPorts.Count == 0 ? (PortsChecked ? "none of the common ports" : "not checked")

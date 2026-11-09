@@ -40,6 +40,8 @@ public sealed record SmbInfo(string? Name, string? DnsName, string? Domain, stri
 
 public sealed record UpnpInfo(string? FriendlyName, string? Manufacturer, string? ModelName, string? ModelNumber);
 
+public sealed record SnmpInfo(string? Name, string? Description, string? Location);
+
 /// <summary>Small, self-contained network probes used by the network device scanner.</summary>
 public static class LanProbes
 {
@@ -535,6 +537,111 @@ public static class LanProbes
         }
         string? os = major >= 5 && build > 0 ? $"Windows {major}.{minor}.{build}" : null;
         return new SmbInfo(name, dnsName, domain, os);
+    }
+
+    // ---- SNMP ----
+
+    /// <summary>
+    /// SNMP v2c GET of sysDescr, sysName and sysLocation with the community "public" (UDP 161). Printers, switches,
+    /// NAS boxes and routers often answer; sysDescr usually contains the model and firmware.
+    /// </summary>
+    public static async Task<SnmpInfo?> SnmpAsync(IPAddress ip)
+    {
+        int[] objects = { 1, 5, 6 }; // 1.3.6.1.2.1.1.x.0: sysDescr, sysName, sysLocation
+        var varbinds = new List<byte>();
+        foreach (int o in objects)
+        {
+            byte[] oid = { 0x2B, 6, 1, 2, 1, 1, (byte)o, 0 };
+            varbinds.AddRange(Tlv(0x30, Concat(Tlv(0x06, oid), new byte[] { 0x05, 0x00 })));
+        }
+        var pdu = Tlv(0xA0, Concat(new byte[] { 0x02, 0x01, 0x2A, 0x02, 0x01, 0x00, 0x02, 0x01, 0x00 }, Tlv(0x30, varbinds.ToArray())));
+        var message = Tlv(0x30, Concat(new byte[] { 0x02, 0x01, 0x01 }, Tlv(0x04, "public"u8.ToArray()), pdu));
+
+        var d = await UdpQueryAsync(ip, 161, message, 1200).ConfigureAwait(false);
+        if (d == null) return null;
+        try
+        {
+            var values = new Dictionary<int, string>();
+            int p = 0;
+            Enter(d, ref p, 0x30);          // message
+            Skip(d, ref p);                 // version
+            Skip(d, ref p);                 // community
+            Enter(d, ref p, 0xA2);          // GetResponse
+            Skip(d, ref p);                 // request id
+            if (ReadInt(d, ref p) != 0) return null; // error status
+            Skip(d, ref p);                 // error index
+            int end = Enter(d, ref p, 0x30);
+            while (p < end)
+            {
+                int vbEnd = Enter(d, ref p, 0x30);
+                if (d[p] != 0x06) break;
+                int oidLength = d[p + 1];
+                int last = d[p + 2 + oidLength - 2];
+                p += 2 + oidLength;
+                if (d[p] == 0x04)
+                {
+                    int length = ReadLength(d, p + 1, out int header);
+                    values[last] = Encoding.UTF8.GetString(d, p + 1 + header, length).Replace("\0", "", StringComparison.Ordinal).Trim();
+                }
+                p = vbEnd;
+            }
+            string? Get(int key) => values.TryGetValue(key, out var v) && v.Length > 0 ? v : null;
+            return values.Count == 0 ? null : new SnmpInfo(Get(5), Get(1), Get(6));
+        }
+        catch (Exception ex) when (ex is IndexOutOfRangeException or ArgumentException or InvalidDataException)
+        {
+            return null;
+        }
+    }
+
+    private static byte[] Concat(params byte[][] parts) => parts.SelectMany(x => x).ToArray();
+
+    private static byte[] Tlv(byte tag, byte[] value)
+    {
+        var length = value.Length < 128
+            ? new[] { (byte)value.Length }
+            : value.Length < 256 ? new byte[] { 0x81, (byte)value.Length } : new byte[] { 0x82, (byte)(value.Length >> 8), (byte)value.Length };
+        return Concat(new[] { tag }, length, value);
+    }
+
+    private static int ReadLength(byte[] d, int p, out int header)
+    {
+        int first = d[p];
+        if (first < 0x80)
+        {
+            header = 1;
+            return first;
+        }
+        int bytes = first & 0x7F;
+        if (bytes is < 1 or > 3) throw new InvalidDataException("Bad BER length.");
+        int length = 0;
+        for (int i = 1; i <= bytes; i++) length = (length << 8) | d[p + i];
+        header = 1 + bytes;
+        return length;
+    }
+
+    /// <summary>Steps into a constructed element and returns where it ends.</summary>
+    private static int Enter(byte[] d, ref int p, byte tag)
+    {
+        if (d[p] != tag) throw new InvalidDataException("Unexpected BER tag.");
+        int length = ReadLength(d, p + 1, out int header);
+        p += 1 + header;
+        return p + length;
+    }
+
+    private static void Skip(byte[] d, ref int p)
+    {
+        int length = ReadLength(d, p + 1, out int header);
+        p += 1 + header + length;
+    }
+
+    private static int ReadInt(byte[] d, ref int p)
+    {
+        int length = ReadLength(d, p + 1, out int header);
+        int value = 0;
+        for (int i = 0; i < length; i++) value = (value << 8) | d[p + 1 + header + i];
+        p += 1 + header + length;
+        return value;
     }
 
     // ---- UPnP / SSDP ----

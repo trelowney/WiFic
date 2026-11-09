@@ -36,7 +36,7 @@
                         Width="84" Margin="8,0,0,0" />
                 <CheckBox Style="{StaticResource Switch}" IsChecked="{Binding Identify}" Margin="18,0,0,0" VerticalAlignment="Center"
                           Content="Check ports and identify devices"
-                          ToolTip="Checks common ports (web, SMB, RDP, SSH, printers, cameras…) and asks each device for its name and model (DNS, NetBIOS, mDNS, SMB, UPnP, web page). Turn off for a quick ping-only scan." />
+                          ToolTip="Checks common ports (web, SMB, RDP, SSH, printers, cameras…) and asks each device for its name and model (DNS, NetBIOS, mDNS, SMB, SNMP, UPnP, web page). Turn off for a quick ping-only scan." />
             </StackPanel>
         </DockPanel>
 

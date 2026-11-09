@@ -331,6 +331,7 @@ public sealed class LanViewModel : ObservableObject
         var dns = LanProbes.ReverseDnsAsync(d.Ip);
         var netbios = LanProbes.NetBiosAsync(d.Ip);
         var mdns = LanProbes.MdnsNameAsync(d.Ip);
+        var snmp = LanProbes.SnmpAsync(d.Ip);
 
         var checks = LanDevice.CommonPorts.Select(p => p.Port).Distinct()
             .Select(async port => (port, open: await LanProbes.IsPortOpenAsync(d.Ip, port, 900, ct))).ToList();
@@ -342,6 +343,7 @@ public sealed class LanViewModel : ObservableObject
         d.DnsName = await dns;
         (d.NetBiosName, d.Workgroup) = await netbios;
         d.MdnsName = await mdns;
+        d.Snmp = await snmp;
         d.Refresh();
 
         if (d.OpenPorts.Contains(445))
@@ -358,15 +360,17 @@ public sealed class LanViewModel : ObservableObject
     {
         private sealed record Fake(int Host, string Mac, int? Ping, int[] Ports, string? Dns = null, string? NetBios = null,
             string? Group = null, string? Mdns = null, SmbInfo? Smb = null, UpnpInfo? Upnp = null, string? Title = null,
-            string? Server = null, bool Self = false, bool Gateway = false, bool New = false);
+            string? Server = null, bool Self = false, bool Gateway = false, bool New = false, SnmpInfo? Snmp = null);
 
         private static readonly Fake[] Devices =
         {
             new(1, "04:D9:F5:3A:7C:0F", 1, new[] { 53, 80, 443 }, Dns: "router.lan", Upnp: new UpnpInfo("Maple-Router", "ASUSTeK Computer Inc.", "Wi-Fi 7 Router", null), Title: "Router Login", Gateway: true),
+            new(2, "50:C7:BF:21:9E:04", 1, new[] { 22, 80 }, Dns: "core-switch.lan", Title: "Switch Login", Snmp: new SnmpInfo("core-switch", "24-Port Gigabit L2+ Managed Switch, firmware 2.1.4", "Hallway rack")),
             new(10, "8C:8D:28:41:22:9A", 0, new[] { 139, 445 }, NetBios: "WORKSTATION", Group: "WORKGROUP", Smb: new SmbInfo("WORKSTATION", "workstation", "WORKSTATION", "Windows 10.0.26100"), Self: true),
             new(11, "A4:BB:6D:10:5E:02", 2, new[] { 139, 445, 3389 }, Dns: "office-pc.lan", NetBios: "OFFICE-PC", Group: "WORKGROUP", Smb: new SmbInfo("OFFICE-PC", "office-pc", "WORKGROUP", "Windows 10.0.22631")),
             new(20, "00:11:32:8A:41:C0", 1, new[] { 22, 80, 139, 443, 445, 5000, 5001 }, NetBios: "NAS-STORAGE", Group: "WORKGROUP", Smb: new SmbInfo("NAS-STORAGE", "nas-storage", "WORKGROUP", null), Upnp: new UpnpInfo("NAS-STORAGE", "Synology", "DS923+", null), Title: "Synology DiskStation"),
-            new(21, "30:24:A9:5C:10:7E", 4, new[] { 80, 443, 631, 9100 }, Mdns: "Office-Printer", Title: "Color LaserJet MFP – Embedded Web Server"),
+            new(21, "30:24:A9:5C:10:7E", 4, new[] { 80, 443, 631, 9100 }, Mdns: "Office-Printer", Title: "Color LaserJet MFP – Embedded Web Server",
+                Snmp: new SnmpInfo("Office-Printer", "HP ETHERNET MULTI-ENVIRONMENT", "Office")),
             new(30, "F4:F5:D8:66:01:3B", 6, new[] { 8008, 8009 }, Mdns: "Living-Room-TV"),
             new(31, "8C:79:F5:12:EE:40", 9, new[] { 80 }, Upnp: new UpnpInfo("[TV] Living Room", "Samsung Electronics", "QE55 Series", null)),
             new(40, "5A:1F:22:9C:03:B1", 38, new[] { 62078 }, Mdns: "Johns-iPhone"),
@@ -412,6 +416,7 @@ public sealed class LanViewModel : ObservableObject
                 d.Upnp = f.Upnp;
                 d.HttpTitle = f.Title;
                 d.HttpServer = f.Server;
+                d.Snmp = f.Snmp;
                 d.IsProbing = false;
                 d.Refresh();
                 vm.Progress = 50 + 50.0 * (i + 1) / Devices.Length;

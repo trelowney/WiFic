@@ -44,9 +44,9 @@ It also finds the devices on your network (an IP scanner) and draws coverage hea
 - **Dark and light theme**, or follow the Windows setting.
 - **Network devices** (IP scanner): finds every device on the network you are connected to, or on any range you enter
   (192.168.1.0/24, 10.0.0.1-50, single addresses). For each device it shows the IP and MAC address, vendor, response time and
-  open common ports, and works out what the device is: its name (DNS, NetBIOS, mDNS, SMB, UPnP), model or Windows version, and a
-  type such as router, printer, NAS, camera, TV or phone. Web interfaces open with one click, and risky services
-  (Telnet, FTP, VNC) are flagged. Port checks can be turned off for a quick ping-only scan.
+  open common ports, and works out what the device is: its name (DNS, NetBIOS, mDNS, SMB, SNMP, UPnP), model, firmware or Windows version, and a
+  type such as router, switch, printer, NAS, camera, TV or phone. Web interfaces open with one click, and risky services
+  (Telnet, FTP, VNC, SNMP with the default "public" community) are flagged. Port checks can be turned off for a quick ping-only scan.
 - **Site survey heatmap**: load a floor plan (or use a blank canvas) and click where you are standing. wific measures
   for about 4 seconds and draws a coverage heatmap for any network and band. Surveys can be saved and exported as PNG.
 - **Recording and playback**: record a session to a `.wificrec` file and replay it later with a timeline, for example
