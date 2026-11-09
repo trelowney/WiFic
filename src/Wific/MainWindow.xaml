@@ -243,7 +243,10 @@
                                         <Setter Property="Template">
                                             <Setter.Value>
                                                 <ControlTemplate TargetType="GroupItem">
-                                                    <ItemsPresenter />
+                                                    <!-- A single BSSID has no group header; a thin line still separates it from the group above. -->
+                                                    <Border BorderThickness="0,1,0,0" BorderBrush="{DynamicResource Line}">
+                                                        <ItemsPresenter />
+                                                    </Border>
                                                 </ControlTemplate>
                                             </Setter.Value>
                                         </Setter>
@@ -301,7 +304,7 @@
                             </Style>
                         </DataGridTextColumn.ElementStyle>
                     </DataGridTextColumn>
-                    <DataGridTextColumn Header="Vendor" Binding="{Binding VendorText, Mode=OneWay}" SortMemberPath="Vendor" Width="150" />
+                    <DataGridTextColumn Header="Vendor" Binding="{Binding VendorText, Mode=OneWay}" SortMemberPath="Vendor" Width="200" />
                     <DataGridTextColumn Header="Band" Binding="{Binding BandText, Mode=OneWay}" SortMemberPath="FrequencyMhz" Width="70" Visibility="Collapsed" />
                     <DataGridTextColumn Header="Channel" Binding="{Binding ChannelText, Mode=OneWay}" SortMemberPath="FrequencyMhz" Width="84" />
                     <DataGridTextColumn Header="Width" Binding="{Binding WidthText, Mode=OneWay}" SortMemberPath="ChannelWidthMhz" Width="84" />

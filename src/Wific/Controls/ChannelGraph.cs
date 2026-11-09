@@ -79,12 +79,16 @@ public sealed class ChannelGraph : GraphBase
                     ?? new List<AccessPointViewModel>();
         var selected = Selected as AccessPointViewModel;
 
-        var placed = new List<Rect>();
+        var order = items.Where(a => a != selected).OrderBy(a => a.Rssi).ToList();
+        if (selected != null && items.Contains(selected)) order.Add(selected);
+
+        // Shapes first, then labels on top, so a stronger network drawn later never crosses out a label.
         dc.PushClip(new RectangleGeometry(new Rect(r.Left, 0, r.Width, r.Bottom)));
-        foreach (var ap in items.Where(a => a != selected).OrderBy(a => a.Rssi))
-            DrawNetwork(dc, ap, FreqToX, r, false, placed);
-        if (selected != null && items.Contains(selected))
-            DrawNetwork(dc, selected, FreqToX, r, true, placed);
+        var shapes = order.Select(ap => DrawNetwork(dc, ap, FreqToX, r, ap == selected)).ToList();
+        var placed = new List<Rect>();
+        var lines = shapes.Select(s => new Rect(s.Left, s.Top - 1.5, Math.Max(1, s.Right - s.Left), 3)).ToList();
+        for (int i = shapes.Count - 1; i >= 0; i--)
+            DrawLabel(dc, shapes[i], r, placed, lines, i);
         dc.Pop();
 
         if (items.Count == 0)
@@ -94,7 +98,9 @@ public sealed class ChannelGraph : GraphBase
         }
     }
 
-    private void DrawNetwork(DrawingContext dc, AccessPointViewModel ap, Func<double, double> freqToX, Rect r, bool isSelected, List<Rect> placed)
+    private sealed record Shape(FormattedText Label, double Left, double Right, double Top);
+
+    private Shape DrawNetwork(DrawingContext dc, AccessPointViewModel ap, Func<double, double> freqToX, Rect r, bool isSelected)
     {
         double half = ap.ChannelWidthMhz / 2.0;
         double left = freqToX(ap.CenterFrequencyMhz - half);
@@ -121,18 +127,44 @@ public sealed class ChannelGraph : GraphBase
         dc.DrawGeometry(fill, pen, geo);
 
         var label = Text(ap.Ssid, isSelected ? 12 : 11, new SolidColorBrush(WithAlpha(ap.Color, strokeAlpha)), isSelected);
-        double lx = (left + right - label.Width) / 2;
-        double ly = top - label.Height - 1;
-        if (ly < r.Top - 12) ly = top + 2;
-        // Move the label up (or down near the top) until it no longer overlaps an already placed one.
-        var box = new Rect(lx, ly, label.Width, label.Height);
-        for (int i = 0; i < 12 && placed.Exists(p => p.IntersectsWith(box)); i++)
+        return new Shape(label, left + edge, right - edge, top);
+    }
+
+    /// <summary>
+    /// Places the label just above its own curve, or the nearest free spot above (or, near the top, below) it,
+    /// so that it overlaps neither another label nor the top line of another network.
+    /// </summary>
+    private static void DrawLabel(DrawingContext dc, Shape s, Rect r, List<Rect> placed, List<Rect> lines, int index)
+    {
+        var label = s.Label;
+        double h = label.Height;
+        double lx = (s.Left + s.Right - label.Width) / 2;
+        double above = s.Top - h - 1;
+
+        bool Free(Rect box) =>
+            !placed.Exists(p => p.IntersectsWith(box))
+            && !lines.Where((_, i) => i != index).Any(l => l.IntersectsWith(box));
+
+        var candidates = new List<double>();
+        for (int k = 0; k < 14; k++)
         {
-            double next = box.Y - label.Height;
-            box.Y = next < r.Top - 12 ? box.Y + label.Height * (i + 2) : next;
+            double up = above - k * h * 0.75;
+            if (up >= r.Top - 12) candidates.Add(up);
+        }
+        for (int k = 0; k < 14; k++) candidates.Add(s.Top + 2 + k * h * 0.75);
+
+        var box = new Rect(lx, Math.Max(above, r.Top - 12), label.Width, h);
+        foreach (double y in candidates)
+        {
+            var c = new Rect(lx, y, label.Width, h);
+            if (c.Bottom > r.Bottom) continue;
+            if (Free(c))
+            {
+                box = c;
+                break;
+            }
         }
         placed.Add(box);
-        ly = box.Y;
-        dc.DrawText(label, new Point(lx, ly));
+        dc.DrawText(label, box.TopLeft);
     }
 }
