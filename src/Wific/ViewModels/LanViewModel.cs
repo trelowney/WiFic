@@ -381,7 +381,7 @@ public sealed class LanViewModel : ObservableObject
         public static async Task<string> RunAsync(LanViewModel vm, CancellationToken ct)
         {
             vm.Devices.Clear();
-            vm.NetworkText = "Wi-Fi “Wi-Fi” · 192.168.50.10 · 192.168.50.0/24 · gateway 192.168.50.1";
+            vm.NetworkText = "Connected to Wi-Fi · this PC 192.168.50.10 · gateway 192.168.50.1";
             vm.StatusText = "Looking for devices on 192.168.50.0/24…";
             for (int i = 0; i < Devices.Length; i++)
             {

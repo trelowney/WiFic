@@ -22,8 +22,8 @@ public sealed class LanDevice : ObservableObject
     public static readonly (int Port, string Name)[] CommonPorts =
     {
         (21, "FTP"), (22, "SSH"), (23, "Telnet"), (53, "DNS"), (80, "HTTP"), (139, "NetBIOS"), (443, "HTTPS"),
-        (445, "SMB"), (515, "LPD"), (554, "RTSP"), (631, "IPP"), (1883, "MQTT"), (3389, "RDP"), (5000, "Web 5000"),
-        (5001, "Web 5001"), (5900, "VNC"), (8008, "Cast"), (8009, "Cast"), (8080, "HTTP 8080"), (8443, "HTTPS 8443"),
+        (445, "SMB"), (515, "LPD"), (554, "RTSP"), (631, "IPP"), (1883, "MQTT"), (3389, "RDP"), (5000, "Web"),
+        (5001, "Web (TLS)"), (5900, "VNC"), (8008, "Cast"), (8009, "Cast"), (8080, "Web"), (8443, "Web (TLS)"),
         (9100, "Printer"), (62078, "Apple sync"),
     };
 
@@ -113,9 +113,11 @@ public sealed class LanDevice : ObservableObject
                 if (model.Length > 0) parts.Add(Upnp.Manufacturer is { Length: > 0 } m && !model.StartsWith(m, StringComparison.OrdinalIgnoreCase) ? $"{m} {model}" : model);
             }
             if (Smb?.Os is { Length: > 0 } os) parts.Add(os);
-            else if (Smb != null) parts.Add("SMB file sharing");
-            if (Workgroup is { Length: > 0 } wg && Smb?.Domain is null) parts.Add(wg);
-            else if (Smb?.Domain is { Length: > 0 } domain) parts.Add(domain);
+            else if (Smb != null && parts.Count == 0) parts.Add("File server (SMB)");
+            string? group = Smb?.Domain ?? Workgroup;
+            if (group is { Length: > 0 } && !group.Equals("WORKGROUP", StringComparison.OrdinalIgnoreCase)
+                && !group.Equals(Name, StringComparison.OrdinalIgnoreCase))
+                parts.Add(group);
             if (HttpTitle is { Length: > 0 } title && title != Name && !parts.Contains(title)) parts.Add(title);
             else if (parts.Count == 0 && HttpServer is { Length: > 0 } server) parts.Add(server);
             return string.Join(" · ", parts);
@@ -140,7 +142,12 @@ public sealed class LanDevice : ObservableObject
     {
         get
         {
-            if (OpenPorts.Count > 0) return string.Join(" · ", Services.Select(s => s.Name).Distinct());
+            if (OpenPorts.Count > 0)
+            {
+                var names = Services.Select(s => s.Name).Distinct().ToList();
+                if (names.Contains("SMB")) names.Remove("NetBIOS");
+                return string.Join(" · ", names);
+            }
             return PortsChecked ? "none" : IsProbing ? "…" : "–";
         }
     }
