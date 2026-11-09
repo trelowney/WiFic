@@ -128,7 +128,7 @@ public sealed class LanDevice : ObservableObject
                 parts.Add(group);
             // A web page title like "Router Login" says nothing about the device; skip it.
             if (HttpTitle is { Length: > 0 } title && title != Name && !parts.Contains(title)
-                && !Regex.IsMatch(title, @"(log ?in|sign ?in|logon|authentication)", RegexOptions.IgnoreCase))
+                && !Regex.IsMatch(title, @"(log ?in|sign ?in|logon|authentication)", RegexOptions.IgnoreCase))
                 parts.Add(title);
             if (parts.Count == 0 && Snmp?.Description is { Length: > 0 } descr) parts.Add(FirstLine(descr));
             if (parts.Count == 0 && HttpServer is { Length: > 0 } server) parts.Add(server);
