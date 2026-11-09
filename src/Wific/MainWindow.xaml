@@ -293,7 +293,7 @@
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
 
-                    <DataGridTextColumn Header="BSSID" Binding="{Binding Bssid, Mode=OneWay}" Width="132">
+                    <DataGridTextColumn Header="BSSID" Binding="{Binding Bssid, Mode=OneWay}" Width="148">
                         <DataGridTextColumn.ElementStyle>
                             <Style TargetType="TextBlock">
                                 <Setter Property="FontFamily" Value="{StaticResource MonoFont}" />
@@ -304,13 +304,13 @@
                     <DataGridTextColumn Header="Vendor" Binding="{Binding VendorText, Mode=OneWay}" SortMemberPath="Vendor" Width="150" />
                     <DataGridTextColumn Header="Band" Binding="{Binding BandText, Mode=OneWay}" SortMemberPath="FrequencyMhz" Width="70" Visibility="Collapsed" />
                     <DataGridTextColumn Header="Channel" Binding="{Binding ChannelText, Mode=OneWay}" SortMemberPath="FrequencyMhz" Width="84" />
-                    <DataGridTextColumn Header="Width" Binding="{Binding WidthText, Mode=OneWay}" SortMemberPath="ChannelWidthMhz" Width="74" />
+                    <DataGridTextColumn Header="Width" Binding="{Binding WidthText, Mode=OneWay}" SortMemberPath="ChannelWidthMhz" Width="84" />
                     <DataGridTextColumn Header="Standard" Binding="{Binding StandardText, Mode=OneWay}" SortMemberPath="Protocol" Width="112" />
-                    <DataGridTextColumn Header="Security" Binding="{Binding Security, Mode=OneWay}" Width="140" />
+                    <DataGridTextColumn Header="Security" Binding="{Binding Security, Mode=OneWay}" Width="158" />
                     <DataGridTextColumn Header="Max rate" Binding="{Binding MaxRateText, Mode=OneWay}" SortMemberPath="MaxRateMbps" Width="88" Visibility="Collapsed" />
                     <DataGridTextColumn Header="Clients" Binding="{Binding StationCountText, Mode=OneWay}" SortMemberPath="StationCountSort" Width="62" />
                     <DataGridTextColumn Header="Ch. load" Binding="{Binding UtilizationText, Mode=OneWay}" SortMemberPath="UtilizationSort" Width="70" Visibility="Collapsed" />
-                    <DataGridTextColumn Header="AP uptime" Binding="{Binding UptimeText, Mode=OneWay}" SortMemberPath="UptimeSort" Width="96" />
+                    <DataGridTextColumn Header="AP uptime" Binding="{Binding UptimeText, Mode=OneWay}" SortMemberPath="UptimeSort" Width="110" />
                     <DataGridTextColumn Header="Last seen" Binding="{Binding LastSeenText, Mode=OneWay}" SortMemberPath="LastSeen" Width="80" Visibility="Collapsed" />
                     <DataGridTextColumn Header="Country" Binding="{Binding Country, Mode=OneWay}" Width="62" Visibility="Collapsed" />
                     <DataGridTextColumn Header="Device" Binding="{Binding Device, Mode=OneWay}" Width="220" />

@@ -50,7 +50,7 @@ public sealed class AppSettings
     /// </summary>
     public int LayoutVersion { get; set; }
 
-    public const int CurrentLayoutVersion = 3;
+    public const int CurrentLayoutVersion = 4;
 
     public static string? LoadedFrom { get; private set; }
 

@@ -22,7 +22,7 @@ public sealed class DemoScanner : IWifiScanner
         string Standard, string Protocol, int Streams, double Rate,
         string Security, string Ciphers, string Pmf, int Rssi, int? Clients, int? Load, bool MultiLink = false);
 
-    private sealed record Device(byte[] Mac, double UptimeHours, string Country, Radio[] Radios);
+    private sealed record Device(byte[] Mac, double UptimeHours, string Country, Radio[] Radios, string ApName = "", string WpsName = "");
 
     private static readonly Guid AdapterId = new("6d656f77-7769-6669-6364-656d6f000001");
 
@@ -34,7 +34,7 @@ public sealed class DemoScanner : IWifiScanner
             new("Maple-Guest", 0x11, true, WifiBand.Band2_4, 6, 20, 6, "Wi-Fi 7", "802.11be", 2, 688, "WPA2-Personal", "CCMP", "Capable", -49, 1, 18),
             new("Maple-Home", 0x14, false, WifiBand.Band5, 36, 160, 50, "Wi-Fi 7", "802.11be", 2, 2882, "WPA2/WPA3-Personal", "CCMP", "Capable", -44, 9, 12, true),
             new("Maple-Home", 0x18, false, WifiBand.Band6, 37, 320, 31, "Wi-Fi 7", "802.11be", 2, 5765, "WPA3-Personal", "GCMP-256, CCMP", "Required", -58, 2, 3, true),
-        }),
+        }, WpsName: "Home router"),
         new(new byte[] { 0x50, 0xC7, 0xBF, 0x8E }, 412.2, "CZ", new Radio[]
         {
             new("Kowalski", 0x02, false, WifiBand.Band2_4, 1, 20, 1, "Wi-Fi 6", "802.11ax", 2, 574, "WPA2-Personal", "CCMP", "No", -67, 4, 41),
@@ -44,16 +44,16 @@ public sealed class DemoScanner : IWifiScanner
         {
             new("Office-Net", 0x40, false, WifiBand.Band5, 149, 80, 155, "Wi-Fi 6", "802.11ax", 2, 1201, "WPA2-Enterprise", "CCMP", "Capable", -63, 14, 47),
             new("Office-Net", 0x38, false, WifiBand.Band2_4, 11, 20, 11, "Wi-Fi 6", "802.11ax", 2, 574, "WPA2-Enterprise", "CCMP", "Capable", -66, 8, 52),
-        }),
+        }, ApName: "AP-Lobby"),
         new(new byte[] { 0x78, 0x8A, 0x20, 0x44 }, 695.8, "CZ", new Radio[]
         {
             new("Office-Net", 0x90, false, WifiBand.Band5, 52, 80, 58, "Wi-Fi 6", "802.11ax", 2, 1201, "WPA2-Enterprise", "CCMP", "Capable", -78, 6, 20),
-        }),
+        }, ApName: "AP-Floor2"),
         new(new byte[] { 0x3C, 0xA6, 0x2F, 0x71 }, 51.0, "DE", new Radio[]
         {
             new("Garden Flat", 0x20, false, WifiBand.Band2_4, 6, 40, 8, "Wi-Fi 6", "802.11ax", 2, 574, "WPA2-Personal", "CCMP", "No", -72, 5, 63),
             new("Garden Flat", 0x21, false, WifiBand.Band5, 44, 80, 42, "Wi-Fi 6", "802.11ax", 2, 1201, "WPA2-Personal", "CCMP", "No", -80, 2, 15),
-        }),
+        }, WpsName: "ISP gateway"),
         new(new byte[] { 0x24, 0x0A, 0xC4, 0x5B }, 1300.0, "", new Radio[]
         {
             new("IoT-Hub", 0x01, false, WifiBand.Band2_4, 11, 20, 11, "Wi-Fi 4", "802.11n", 1, 72, "WPA2-Personal", "CCMP", "No", -70, 3, 30),
@@ -153,6 +153,8 @@ public sealed class DemoScanner : IWifiScanner
                     BssColor = he ? 1 + (r.Offset * 7 + d.Mac[3]) % 63 : null,
                     MultiLink = r.MultiLink,
                     Roaming = he ? "802.11k/v" : "",
+                    ApName = d.ApName,
+                    WpsDeviceName = d.WpsName,
                 });
             }
         }

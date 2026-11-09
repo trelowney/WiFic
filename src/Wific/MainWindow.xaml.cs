@@ -67,6 +67,7 @@ public partial class MainWindow : Window
             });
         }
         ApplyColumns(_settings.Columns);
+        if (App.OpenSurveyAtStart) OnSurveyClick(this, e);
 
         await _vm.StartAsync();
     }

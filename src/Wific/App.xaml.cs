@@ -15,6 +15,9 @@ public partial class App : Application
     /// <summary>True when started with --demo: invented networks, settings are not saved.</summary>
     public static bool IsDemo { get; private set; }
 
+    /// <summary>Demo only (--survey): open the site survey window with a sample survey at startup.</summary>
+    public static bool OpenSurveyAtStart { get; private set; }
+
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
@@ -24,6 +27,7 @@ public partial class App : Application
         // --demo shows made-up networks (used for the screenshots) and never reads or writes the settings file.
         // --theme dark|light picks the theme for that run.
         IsDemo = e.Args.Any(a => string.Equals(a, "--demo", StringComparison.OrdinalIgnoreCase));
+        OpenSurveyAtStart = IsDemo && e.Args.Any(a => string.Equals(a, "--survey", StringComparison.OrdinalIgnoreCase));
         var settings = IsDemo
             ? new AppSettings { LayoutVersion = AppSettings.CurrentLayoutVersion, CheckForUpdates = false }
             : AppSettings.Load();
