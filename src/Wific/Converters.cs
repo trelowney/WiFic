@@ -40,8 +40,9 @@ public sealed class NullToVisibilityConverter : IValueConverter
 {
     public static readonly NullToVisibilityConverter Instance = new();
 
+    /// <summary>Visible when the value is set; with ConverterParameter=invert, visible when it is null.</summary>
     public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
-        => value == null ? System.Windows.Visibility.Collapsed : System.Windows.Visibility.Visible;
+        => (value == null) == (parameter as string == "invert") ? System.Windows.Visibility.Visible : System.Windows.Visibility.Collapsed;
 
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
         => Binding.DoNothing;

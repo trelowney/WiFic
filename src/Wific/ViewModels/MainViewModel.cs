@@ -54,6 +54,7 @@ public sealed class MainViewModel : ObservableObject, IDisposable
     public MainViewModel(AppSettings settings)
     {
         _settings = settings;
+        Lan = new LanViewModel(settings, () => _oui);
 
         View = CollectionViewSource.GetDefaultView(AccessPoints);
         View.Filter = Filter;
@@ -401,6 +402,51 @@ public sealed class MainViewModel : ObservableObject, IDisposable
     public int Count5 => AccessPoints.Count(a => a.Band == WifiBand.Band5 && !a.IsStale);
     public int Count6 => AccessPoints.Count(a => a.Band == WifiBand.Band6 && !a.IsStale);
     public int OuiCount => _oui.Count;
+
+    // ---- Pages: Wi-Fi networks, site survey, network devices ----
+
+    public LanViewModel Lan { get; }
+
+    private int _page;
+    public int Page
+    {
+        get => _page;
+        set
+        {
+            if (!Set(ref _page, value)) return;
+            OnPropertyChanged(nameof(IsWifiPage));
+            OnPropertyChanged(nameof(IsSurveyPage));
+            OnPropertyChanged(nameof(IsLanPage));
+            if (value == 2) _ = Lan.PrepareAsync();
+        }
+    }
+
+    public bool IsWifiPage
+    {
+        get => _page == 0;
+        set
+        {
+            if (value) Page = 0;
+        }
+    }
+
+    public bool IsSurveyPage
+    {
+        get => _page == 1;
+        set
+        {
+            if (value) Page = 1;
+        }
+    }
+
+    public bool IsLanPage
+    {
+        get => _page == 2;
+        set
+        {
+            if (value) Page = 2;
+        }
+    }
 
     // ---- Updates ----
 

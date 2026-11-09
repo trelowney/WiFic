@@ -3,7 +3,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 using System;
-using System.ComponentModel;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -21,9 +20,9 @@ using Wific.Wifi;
 
 namespace Wific;
 
-public partial class SurveyWindow : Window
+public partial class SurveyView : UserControl
 {
-    private readonly MainViewModel _vm;
+    private MainViewModel _vm = null!;
     private SurveyProject? _project;
     private SurveyTarget _target = SurveyTarget.Any;
     private WifiBand? _band;
@@ -32,17 +31,18 @@ public partial class SurveyWindow : Window
     private bool _dirty;
     private Point? _pending;
 
-    public SurveyWindow(MainViewModel vm)
+    public SurveyView()
     {
         InitializeComponent();
-        _vm = vm;
         LegendBar.Background = HeatmapRenderer.LegendBrush();
-        SourceInitialized += (_, _) => DarkTitleBar.Apply(this, ThemeManager.IsDark);
-        Closing += OnClosing;
         _ready = true;
         UpdateButtons();
         if (App.IsDemo) SetProject(DemoSurvey.Create());
     }
+
+    public void Initialize(MainViewModel vm) => _vm = vm;
+
+    private Window HostWindow => Window.GetWindow(this) ?? Application.Current.MainWindow!;
 
     // ---- Project ----
 
@@ -75,7 +75,7 @@ public partial class SurveyWindow : Window
     private bool ConfirmDiscard()
     {
         if (!_dirty || _project == null || _project.Points.Count == 0) return true;
-        var answer = MessageBox.Show(this, "Save the current survey first?", "wific – Site survey",
+        var answer = MessageBox.Show(HostWindow, "Save the current survey first?", "wific – Site survey",
             MessageBoxButton.YesNoCancel, MessageBoxImage.Question);
         if (answer == MessageBoxResult.Cancel) return false;
         if (answer == MessageBoxResult.Yes) return SaveAs();
@@ -86,7 +86,7 @@ public partial class SurveyWindow : Window
     {
         if (_measuring || !ConfirmDiscard()) return;
         var dialog = new OpenFileDialog { Filter = "Images (*.png;*.jpg;*.jpeg;*.bmp;*.gif)|*.png;*.jpg;*.jpeg;*.bmp;*.gif" };
-        if (dialog.ShowDialog(this) != true) return;
+        if (dialog.ShowDialog(HostWindow) != true) return;
         try
         {
             SetProject(new SurveyProject { Image = File.ReadAllBytes(dialog.FileName) });
@@ -131,7 +131,7 @@ public partial class SurveyWindow : Window
     {
         if (_measuring || !ConfirmDiscard()) return;
         var dialog = new OpenFileDialog { Filter = "wific survey (*.wificsurvey)|*.wificsurvey" };
-        if (dialog.ShowDialog(this) != true) return;
+        if (dialog.ShowDialog(HostWindow) != true) return;
         try
         {
             SetProject(SurveyProject.Load(dialog.FileName));
@@ -154,7 +154,7 @@ public partial class SurveyWindow : Window
             Filter = "wific survey (*.wificsurvey)|*.wificsurvey",
             FileName = $"wific-survey-{DateTime.Now:yyyyMMdd-HHmm}.wificsurvey",
         };
-        if (dialog.ShowDialog(this) != true) return false;
+        if (dialog.ShowDialog(HostWindow) != true) return false;
         try
         {
             _project.Save(dialog.FileName);
@@ -177,7 +177,7 @@ public partial class SurveyWindow : Window
             Filter = "PNG image (*.png)|*.png",
             FileName = $"wific-heatmap-{DateTime.Now:yyyyMMdd-HHmm}.png",
         };
-        if (dialog.ShowDialog(this) != true) return;
+        if (dialog.ShowDialog(HostWindow) != true) return;
 
         int w = (int)PlanGrid.Width, h = (int)PlanGrid.Height;
         var visual = new DrawingVisual();
@@ -199,15 +199,8 @@ public partial class SurveyWindow : Window
         }
     }
 
-    private void OnClosing(object? sender, CancelEventArgs e)
-    {
-        if (_measuring)
-        {
-            e.Cancel = true;
-            return;
-        }
-        if (!ConfirmDiscard()) e.Cancel = true;
-    }
+    /// <summary>Asks to save unsaved measurements; false when the app should not close yet.</summary>
+    public bool CanClose() => !_measuring && ConfirmDiscard();
 
     // ---- Measuring ----
 
@@ -358,6 +351,6 @@ public partial class SurveyWindow : Window
     private void ShowError(string message)
     {
         StatusText.Text = message;
-        MessageBox.Show(this, message, "wific – Site survey", MessageBoxButton.OK, MessageBoxImage.Warning);
+        MessageBox.Show(HostWindow, message, "wific – Site survey", MessageBoxButton.OK, MessageBoxImage.Warning);
     }
 }

@@ -18,6 +18,9 @@ public partial class App : Application
     /// <summary>Demo only (--survey): open the site survey window with a sample survey at startup.</summary>
     public static bool OpenSurveyAtStart { get; private set; }
 
+    /// <summary>Demo only (--lan): open the network devices page and run the demo scan.</summary>
+    public static bool OpenLanAtStart { get; private set; }
+
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
@@ -28,6 +31,7 @@ public partial class App : Application
         // --theme dark|light picks the theme for that run.
         IsDemo = e.Args.Any(a => string.Equals(a, "--demo", StringComparison.OrdinalIgnoreCase));
         OpenSurveyAtStart = IsDemo && e.Args.Any(a => string.Equals(a, "--survey", StringComparison.OrdinalIgnoreCase));
+        OpenLanAtStart = IsDemo && e.Args.Any(a => string.Equals(a, "--lan", StringComparison.OrdinalIgnoreCase));
         var settings = IsDemo
             ? new AppSettings { LayoutVersion = AppSettings.CurrentLayoutVersion, CheckForUpdates = false }
             : AppSettings.Load();

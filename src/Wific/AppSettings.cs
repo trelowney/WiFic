@@ -24,6 +24,7 @@ public sealed class AppSettings
     public int RemoveAfterMinutes { get; set; } = 10;
     public bool ShowHiddenNetworks { get; set; } = true;
     public bool HideStale { get; set; }
+    public bool LanIdentify { get; set; } = true;
     public bool AlwaysOnTop { get; set; }
     public bool Show24 { get; set; } = true;
     public bool Show5 { get; set; } = true;

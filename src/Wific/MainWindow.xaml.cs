@@ -11,6 +11,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Interop;
+using Wific.Controls;
 using Wific.Updates;
 using Wific.ViewModels;
 
@@ -29,6 +30,7 @@ public partial class MainWindow : Window
         _vm = new MainViewModel(settings);
         _vm.RestartRequested += (_, _) => Application.Current.Shutdown();
         DataContext = _vm;
+        SurveyPage.Initialize(_vm);
 
         SourceInitialized += OnSourceInitialized;
         Loaded += OnLoaded;
@@ -67,13 +69,23 @@ public partial class MainWindow : Window
             });
         }
         ApplyColumns(_settings.Columns);
-        if (App.OpenSurveyAtStart) OnSurveyClick(this, e);
+        if (App.OpenSurveyAtStart) _vm.Page = 1;
+        if (App.OpenLanAtStart)
+        {
+            _vm.Page = 2;
+            _ = _vm.Lan.ScanAsync();
+        }
 
         await _vm.StartAsync();
     }
 
     private void OnClosing(object? sender, CancelEventArgs e)
     {
+        if (!SurveyPage.CanClose())
+        {
+            e.Cancel = true;
+            return;
+        }
         _settings.WindowMaximized = WindowState == WindowState.Maximized;
         var bounds = WindowState == WindowState.Normal ? new Rect(Left, Top, Width, Height) : RestoreBounds;
         if (bounds.Width > 0 && bounds.Height > 0)
@@ -105,7 +117,6 @@ public partial class MainWindow : Window
         {
             if (!byKey.TryGetValue(HeaderOf(c), out var s)) continue;
             c.Visibility = s.Visible ? Visibility.Visible : Visibility.Collapsed;
-            if (s.Width >= 40 && !c.Width.IsStar) c.Width = new DataGridLength(s.Width);
         }
 
         int count = NetworkGrid.Columns.Count;
@@ -141,6 +152,7 @@ public partial class MainWindow : Window
                     return;
                 }
                 column.Visibility = item.IsChecked ? Visibility.Visible : Visibility.Collapsed;
+                ColumnFit.Fit(NetworkGrid);
             };
             menu.Items.Add(item);
         }
@@ -153,9 +165,9 @@ public partial class MainWindow : Window
                 var d = _defaultColumns.FirstOrDefault(x => x.Key == HeaderOf(c));
                 if (d == null) continue;
                 c.Visibility = d.Visible ? Visibility.Visible : Visibility.Collapsed;
-                if (d.Width > 0) c.Width = new DataGridLength(d.Width);
             }
             ApplyColumns(_defaultColumns);
+            ColumnFit.Fit(NetworkGrid);
         };
         menu.Items.Add(reset);
     }
@@ -184,20 +196,6 @@ public partial class MainWindow : Window
         MainMenu.PlacementTarget = MenuButton;
         MainMenu.Placement = PlacementMode.Bottom;
         MainMenu.IsOpen = true;
-    }
-
-    private SurveyWindow? _survey;
-
-    private void OnSurveyClick(object sender, RoutedEventArgs e)
-    {
-        if (_survey != null)
-        {
-            _survey.Activate();
-            return;
-        }
-        _survey = new SurveyWindow(_vm) { Owner = this };
-        _survey.Closed += (_, _) => _survey = null;
-        _survey.Show();
     }
 
     private void OnSettingsClick(object sender, RoutedEventArgs e)

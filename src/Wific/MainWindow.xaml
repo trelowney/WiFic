@@ -46,10 +46,7 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" MinHeight="150" />
-            <RowDefinition Height="6" />
-            <RowDefinition x:Name="BottomRow" Height="290" MinHeight="160" />
+            <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
@@ -74,9 +71,20 @@
                           Data="M0,5.5 A10,10 0 0 1 16,5.5 M3,8.5 A6,6 0 0 1 13,8.5 M6.2,11.5 A2.4,2.4 0 0 1 9.8,11.5" />
                 </Border>
                 <TextBlock Text="wific" FontSize="19" FontWeight="Bold" Margin="10,0,0,1" VerticalAlignment="Center" />
+                <Border Style="{StaticResource SegmentHost}" Margin="20,0,0,0" VerticalAlignment="Center">
+                    <StackPanel Orientation="Horizontal">
+                        <RadioButton Style="{StaticResource Segment}" GroupName="Page" Content="Wi-Fi networks" IsChecked="{Binding IsWifiPage}"
+                                     ToolTip="Access points around you" />
+                        <RadioButton Style="{StaticResource Segment}" GroupName="Page" Content="Site survey" IsChecked="{Binding IsSurveyPage}"
+                                     ToolTip="Coverage heatmap on a floor plan" />
+                        <RadioButton Style="{StaticResource Segment}" GroupName="Page" Content="Network devices" IsChecked="{Binding IsLanPage}"
+                                     ToolTip="Devices on the network you are connected to" />
+                    </StackPanel>
+                </Border>
             </StackPanel>
 
-            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="22,0,12,0">
+            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="16,0,12,0"
+                        Visibility="{Binding IsWifiPage, Converter={StaticResource BoolToVis}}">
                 <ComboBox Width="210" ItemsSource="{Binding Interfaces}" SelectedItem="{Binding SelectedInterface}"
                           ToolTip="Wi-Fi adapter used for scanning" Margin="0,0,12,0" />
                 <ToggleButton Style="{StaticResource Chip}" IsChecked="{Binding Show24}" ToolTip="Show 2.4 GHz networks">
@@ -91,6 +99,7 @@
             </StackPanel>
 
             <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                <StackPanel Orientation="Horizontal" Visibility="{Binding IsWifiPage, Converter={StaticResource BoolToVis}}">
                 <TextBox Style="{StaticResource SearchBox}" Width="200" Tag="Search SSID, MAC, vendor…"
                          Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,8,0" />
                 <Button Content="{Binding ScanButtonText}" Command="{Binding ToggleScanCommand}" Width="78" Margin="0,0,8,0" />
@@ -100,7 +109,6 @@
                         <ContextMenu x:Name="MainMenu" Placement="Bottom">
                             <MenuItem Header="{Binding RecordMenuText}" Command="{Binding ToggleRecordCommand}" />
                             <MenuItem Header="Open recording…" Command="{Binding OpenRecordingCommand}" />
-                            <MenuItem Header="Site survey (heatmap)…" Click="OnSurveyClick" />
                             <MenuItem Header="Export to CSV…" Command="{Binding ExportCommand}" />
                             <Separator />
                             <MenuItem Header="Group by access point" IsCheckable="True" IsChecked="{Binding GroupByAccessPoint}" />
@@ -111,6 +119,7 @@
                         </ContextMenu>
                     </Button.ContextMenu>
                 </Button>
+                </StackPanel>
                 <Button Click="OnSettingsClick" ToolTip="Settings and about" Width="36" Padding="0">
                     <Path Width="15" Height="15" Stretch="Uniform" Fill="{DynamicResource TextMain}"
                           Data="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z" />
@@ -158,8 +167,17 @@
             </Grid>
         </Border>
 
+        <!-- Wi-Fi networks page -->
+        <Grid Grid.Row="3" Visibility="{Binding IsWifiPage, Converter={StaticResource BoolToVis}}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" MinHeight="150" />
+            <RowDefinition Height="6" />
+            <RowDefinition x:Name="BottomRow" Height="290" MinHeight="160" />
+        </Grid.RowDefinitions>
+
         <!-- Playback bar (replaces the connection strip while a recording is open) -->
-        <Border Grid.Row="3" Margin="16,0,16,8" Padding="12,0" Height="38" CornerRadius="8" BorderThickness="1"
+        <Border Grid.Row="0" Margin="16,0,16,8" Padding="12,0" Height="38" CornerRadius="8" BorderThickness="1"
                 Background="{DynamicResource InfoBannerBg}" BorderBrush="{DynamicResource InfoBannerLine}"
                 Visibility="{Binding IsPlayback, Converter={StaticResource BoolToVis}}">
             <DockPanel VerticalAlignment="Center">
@@ -175,7 +193,7 @@
         </Border>
 
         <!-- Connection strip -->
-        <Border Grid.Row="3" Margin="16,0,16,8" Padding="12,0" Height="38" Style="{StaticResource Card}" DataContext="{Binding Connection}"
+        <Border Grid.Row="0" Margin="16,0,16,8" Padding="12,0" Height="38" Style="{StaticResource Card}" DataContext="{Binding Connection}"
                 Visibility="{Binding DataContext.ShowConnectionStrip, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource BoolToVis}}">
             <Grid>
                 <TextBlock Text="Not connected to a Wi-Fi network" Foreground="{DynamicResource TextMuted}" VerticalAlignment="Center"
@@ -207,10 +225,10 @@
         </Border>
 
         <!-- Network table -->
-        <Border Grid.Row="4" Margin="16,0,16,0" Style="{StaticResource Card}" ClipToBounds="True">
+        <Border Grid.Row="1" Margin="16,0,16,0" Style="{StaticResource Card}" ClipToBounds="True">
             <DataGrid x:Name="NetworkGrid" ItemsSource="{Binding View}" SelectedItem="{Binding SelectedAccessPoint, Mode=TwoWay}"
                       ColumnHeaderStyle="{StaticResource ColumnHeaderWithMenu}"
-                      MinColumnWidth="40"
+                      MinColumnWidth="40" controls:ColumnFit.Enabled="True"
                       SelectionChanged="OnNetworkSelectionChanged">
                 <DataGrid.Resources>
                     <SolidColorBrush x:Key="{x:Static SystemColors.ControlBrushKey}" Color="Transparent" />
@@ -260,7 +278,7 @@
                     <DataGridTemplateColumn Header="!" SortMemberPath="IssueSeverity" Width="34" MinWidth="34" CanUserResize="False"
                                             CellTemplate="{StaticResource SeverityBadge}" />
 
-                    <DataGridTemplateColumn Header="Signal" SortMemberPath="Rssi" Width="112">
+                    <DataGridTemplateColumn Header="Signal" SortMemberPath="Rssi" Width="122" MinWidth="122" controls:ColumnFit.Weight="0">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate DataType="{x:Type vm:AccessPointViewModel}">
                                 <StackPanel Orientation="Horizontal">
@@ -274,7 +292,7 @@
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
 
-                    <DataGridTemplateColumn Header="SSID" SortMemberPath="Ssid" Width="190">
+                    <DataGridTemplateColumn Header="SSID" SortMemberPath="Ssid" Width="170" MinWidth="170" controls:ColumnFit.Weight="3">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate DataType="{x:Type vm:AccessPointViewModel}">
                                 <StackPanel Orientation="Horizontal">
@@ -296,7 +314,7 @@
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
 
-                    <DataGridTextColumn Header="BSSID" Binding="{Binding Bssid, Mode=OneWay}" Width="148">
+                    <DataGridTextColumn Header="BSSID" Binding="{Binding Bssid, Mode=OneWay}" Width="148" MinWidth="148" controls:ColumnFit.Weight="0">
                         <DataGridTextColumn.ElementStyle>
                             <Style TargetType="TextBlock">
                                 <Setter Property="FontFamily" Value="{StaticResource MonoFont}" />
@@ -304,28 +322,28 @@
                             </Style>
                         </DataGridTextColumn.ElementStyle>
                     </DataGridTextColumn>
-                    <DataGridTextColumn Header="Vendor" Binding="{Binding VendorText, Mode=OneWay}" SortMemberPath="Vendor" Width="200" />
-                    <DataGridTextColumn Header="Band" Binding="{Binding BandText, Mode=OneWay}" SortMemberPath="FrequencyMhz" Width="70" Visibility="Collapsed" />
-                    <DataGridTextColumn Header="Channel" Binding="{Binding ChannelText, Mode=OneWay}" SortMemberPath="FrequencyMhz" Width="84" />
-                    <DataGridTextColumn Header="Width" Binding="{Binding WidthText, Mode=OneWay}" SortMemberPath="ChannelWidthMhz" Width="84" />
-                    <DataGridTextColumn Header="Standard" Binding="{Binding StandardText, Mode=OneWay}" SortMemberPath="Protocol" Width="112" />
-                    <DataGridTextColumn Header="Security" Binding="{Binding Security, Mode=OneWay}" Width="158" />
-                    <DataGridTextColumn Header="Max rate" Binding="{Binding MaxRateText, Mode=OneWay}" SortMemberPath="MaxRateMbps" Width="88" Visibility="Collapsed" />
-                    <DataGridTextColumn Header="Clients" Binding="{Binding StationCountText, Mode=OneWay}" SortMemberPath="StationCountSort" Width="62" />
-                    <DataGridTextColumn Header="Ch. load" Binding="{Binding UtilizationText, Mode=OneWay}" SortMemberPath="UtilizationSort" Width="70" Visibility="Collapsed" />
-                    <DataGridTextColumn Header="AP uptime" Binding="{Binding UptimeText, Mode=OneWay}" SortMemberPath="UptimeSort" Width="110" />
-                    <DataGridTextColumn Header="Last seen" Binding="{Binding LastSeenText, Mode=OneWay}" SortMemberPath="LastSeen" Width="80" Visibility="Collapsed" />
-                    <DataGridTextColumn Header="Country" Binding="{Binding Country, Mode=OneWay}" Width="62" Visibility="Collapsed" />
-                    <DataGridTextColumn Header="Device" Binding="{Binding Device, Mode=OneWay}" Width="220" />
+                    <DataGridTextColumn Header="Vendor" Binding="{Binding VendorText, Mode=OneWay}" SortMemberPath="Vendor" Width="190" MinWidth="190" controls:ColumnFit.Weight="3" />
+                    <DataGridTextColumn Header="Band" Binding="{Binding BandText, Mode=OneWay}" SortMemberPath="FrequencyMhz" Width="70" MinWidth="70" controls:ColumnFit.Weight="0" Visibility="Collapsed" />
+                    <DataGridTextColumn Header="Channel" Binding="{Binding ChannelText, Mode=OneWay}" SortMemberPath="FrequencyMhz" Width="88" MinWidth="88" controls:ColumnFit.Weight="0" />
+                    <DataGridTextColumn Header="Width" Binding="{Binding WidthText, Mode=OneWay}" SortMemberPath="ChannelWidthMhz" Width="84" MinWidth="84" controls:ColumnFit.Weight="0" />
+                    <DataGridTextColumn Header="Standard" Binding="{Binding StandardText, Mode=OneWay}" SortMemberPath="Protocol" Width="116" MinWidth="116" controls:ColumnFit.Weight="0" />
+                    <DataGridTextColumn Header="Security" Binding="{Binding Security, Mode=OneWay}" Width="160" MinWidth="160" controls:ColumnFit.Weight="1" />
+                    <DataGridTextColumn Header="Max rate" Binding="{Binding MaxRateText, Mode=OneWay}" SortMemberPath="MaxRateMbps" Width="90" MinWidth="90" controls:ColumnFit.Weight="0" Visibility="Collapsed" />
+                    <DataGridTextColumn Header="Clients" Binding="{Binding StationCountText, Mode=OneWay}" SortMemberPath="StationCountSort" Width="68" MinWidth="68" controls:ColumnFit.Weight="0" />
+                    <DataGridTextColumn Header="Ch. load" Binding="{Binding UtilizationText, Mode=OneWay}" SortMemberPath="UtilizationSort" Width="76" MinWidth="76" controls:ColumnFit.Weight="0" Visibility="Collapsed" />
+                    <DataGridTextColumn Header="AP uptime" Binding="{Binding UptimeText, Mode=OneWay}" SortMemberPath="UptimeSort" Width="112" MinWidth="112" controls:ColumnFit.Weight="0" />
+                    <DataGridTextColumn Header="Last seen" Binding="{Binding LastSeenText, Mode=OneWay}" SortMemberPath="LastSeen" Width="84" MinWidth="84" controls:ColumnFit.Weight="0" Visibility="Collapsed" />
+                    <DataGridTextColumn Header="Country" Binding="{Binding Country, Mode=OneWay}" Width="70" MinWidth="70" controls:ColumnFit.Weight="0" Visibility="Collapsed" />
+                    <DataGridTextColumn Header="Device" Binding="{Binding Device, Mode=OneWay}" Width="120" MinWidth="120" controls:ColumnFit.Weight="2" />
                 </DataGrid.Columns>
             </DataGrid>
         </Border>
 
-        <GridSplitter Grid.Row="5" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="Transparent"
+        <GridSplitter Grid.Row="2" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="Transparent"
                       ResizeDirection="Rows" Cursor="SizeNS" />
 
         <!-- Graphs, details and issues -->
-        <Border Grid.Row="6" Margin="16,0,16,0" Style="{StaticResource Card}" ClipToBounds="True">
+        <Border Grid.Row="3" Margin="16,0,16,0" Style="{StaticResource Card}" ClipToBounds="True">
             <TabControl>
                 <TabItem Header="Channels">
                     <Grid>
@@ -446,8 +464,8 @@
                                     </DataGridTemplateColumn.CellTemplate>
                                 </DataGridTemplateColumn>
                                 <DataGridTextColumn Header="Network" Binding="{Binding Ssid, Mode=OneWay}" Width="180" />
-                                <DataGridTextColumn Header="BSSID" Binding="{Binding Bssid, Mode=OneWay}" Width="140" />
-                                <DataGridTextColumn Header="Channel" Binding="{Binding ChannelText, Mode=OneWay}" Width="84" />
+                                <DataGridTextColumn Header="BSSID" Binding="{Binding Bssid, Mode=OneWay}" Width="148" MinWidth="148" controls:ColumnFit.Weight="0" />
+                                <DataGridTextColumn Header="Channel" Binding="{Binding ChannelText, Mode=OneWay}" Width="88" MinWidth="88" controls:ColumnFit.Weight="0" />
                                 <DataGridTextColumn Header="Issue" Binding="{Binding Text, Mode=OneWay}" Width="*" />
                             </DataGrid.Columns>
                         </DataGrid>
@@ -456,8 +474,18 @@
             </TabControl>
         </Border>
 
+        </Grid>
+
+        <!-- Site survey page -->
+        <local:SurveyView x:Name="SurveyPage" Grid.Row="3" Margin="0,0,0,0"
+                          Visibility="{Binding IsSurveyPage, Converter={StaticResource BoolToVis}}" />
+
+        <!-- Network devices page -->
+        <local:LanView Grid.Row="3" DataContext="{Binding Lan}"
+                       Visibility="{Binding DataContext.IsLanPage, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource BoolToVis}}" />
+
         <!-- Status bar -->
-        <Grid Grid.Row="7" Margin="18,6,18,8">
+        <Grid Grid.Row="4" Margin="18,6,18,8">
             <StackPanel Orientation="Horizontal">
                 <TextBlock Text="{Binding StatusText}" Foreground="{DynamicResource TextMuted}" FontSize="12" />
                 <TextBlock Text="{Binding RecordingText}" Foreground="{DynamicResource Critical}" FontSize="12" FontWeight="SemiBold" Margin="14,0,0,0"
