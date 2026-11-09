@@ -87,6 +87,12 @@ public sealed class AppSettings
 
     public void Save()
     {
+        if (App.IsDemo) return; // demo runs never touch the real settings file
+        SaveCore();
+    }
+
+    private void SaveCore()
+    {
         Normalize(migrate: false);
         string json = JsonSerializer.Serialize(this, Options);
         foreach (var path in new[] { LoadedFrom ?? PortablePath, PortablePath, RoamingPath })

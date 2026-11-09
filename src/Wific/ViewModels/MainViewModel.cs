@@ -31,7 +31,7 @@ public sealed class MainViewModel : ObservableObject, IDisposable
     private readonly DispatcherTimer _clock;
     private readonly CancellationTokenSource _cts = new();
     private readonly AppSettings _settings;
-    private WifiScanner? _scanner;
+    private IWifiScanner? _scanner;
     private OuiDatabase _oui = new();
     private bool _resetPending;
 
@@ -500,7 +500,7 @@ public sealed class MainViewModel : ObservableObject, IDisposable
 
         try
         {
-            _scanner = new WifiScanner();
+            _scanner = App.IsDemo ? new DemoScanner() : new WifiScanner();
             var scanner = _scanner;
             var list = await Task.Run(() => scanner.GetInterfaces());
             foreach (var i in list) Interfaces.Add(i);

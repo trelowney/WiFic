@@ -41,6 +41,7 @@ public partial class SurveyWindow : Window
         Closing += OnClosing;
         _ready = true;
         UpdateButtons();
+        if (App.IsDemo) SetProject(DemoSurvey.Create());
     }
 
     // ---- Project ----

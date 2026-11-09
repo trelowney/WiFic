@@ -15,8 +15,17 @@ public sealed class ScanResult
     public string? ConnectedBssid { get; set; }
 }
 
+/// <summary>Source of scan results: the real WLAN API or the demo data.</summary>
+public interface IWifiScanner : IDisposable
+{
+    IReadOnlyList<WlanInterface> GetInterfaces();
+    void TriggerScan(Guid iface);
+    ScanResult Read(Guid iface);
+    (ConnectionSnapshot Connection, int? Rssi)? ReadConnection(Guid iface);
+}
+
 /// <summary>Owns the WLAN client handle. All methods are blocking and may be called from a worker thread.</summary>
-public sealed class WifiScanner : IDisposable
+public sealed class WifiScanner : IWifiScanner
 {
     private readonly object _sync = new();
     private IntPtr _handle;
