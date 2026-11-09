@@ -18,9 +18,18 @@ public sealed class RssiToBrushConverter : IValueConverter
     private static readonly Brush Weak = Make(0xF2, 0x8C, 0x38);
     private static readonly Brush Poor = Make(0xF0, 0x52, 0x5E);
 
+    // Darker shades for the light theme; the bright ones above are hard to read on white.
+    private static readonly Brush ExcellentLight = Make(0x12, 0x87, 0x4D);
+    private static readonly Brush GoodLight = Make(0x55, 0x8B, 0x12);
+    private static readonly Brush FairLight = Make(0xA3, 0x74, 0x00);
+    private static readonly Brush WeakLight = Make(0xC2, 0x5A, 0x0B);
+    private static readonly Brush PoorLight = Make(0xCC, 0x2B, 0x3A);
+
     public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
         int rssi = value is int i ? i : -100;
+        if (!ThemeManager.IsDark)
+            return rssi >= -55 ? ExcellentLight : rssi >= -65 ? GoodLight : rssi >= -72 ? FairLight : rssi >= -80 ? WeakLight : PoorLight;
         return rssi >= -55 ? Excellent : rssi >= -65 ? Good : rssi >= -72 ? Fair : rssi >= -80 ? Weak : Poor;
     }
 

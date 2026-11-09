@@ -33,7 +33,7 @@ public partial class App : Application
         OpenSurveyAtStart = IsDemo && e.Args.Any(a => string.Equals(a, "--survey", StringComparison.OrdinalIgnoreCase));
         OpenLanAtStart = IsDemo && e.Args.Any(a => string.Equals(a, "--lan", StringComparison.OrdinalIgnoreCase));
         var settings = IsDemo
-            ? new AppSettings { LayoutVersion = AppSettings.CurrentLayoutVersion, CheckForUpdates = false }
+            ? new AppSettings { LayoutVersion = AppSettings.CurrentLayoutVersion, CheckForUpdates = false, HistoryMinutes = 1 }
             : AppSettings.Load();
         int themeIndex = Array.FindIndex(e.Args, a => string.Equals(a, "--theme", StringComparison.OrdinalIgnoreCase));
         if (IsDemo && themeIndex >= 0 && themeIndex + 1 < e.Args.Length)

@@ -391,6 +391,12 @@
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
+        <Style.Triggers>
+            <!-- Keep the theme text colour; the Windows default turns selected text grey when the grid loses focus. -->
+            <Trigger Property="IsSelected" Value="True">
+                <Setter Property="Foreground" Value="{DynamicResource TextMain}" />
+            </Trigger>
+        </Style.Triggers>
     </Style>
 
     <Style TargetType="DataGridRow">

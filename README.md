@@ -9,10 +9,15 @@
   <a href="https://github.com/trelowney/wific/releases/latest"><b>Download the latest release</b></a>
 </p>
 
+<p align="center">
+  <img src="docs/screenshots/networks.png" alt="wific: Wi-Fi networks grouped by access point, with the channel graph" width="100%">
+</p>
+
 ---
 
 wific shows every access point (BSSID) around you and decodes its beacon to show the details that usually need a
 paid tool: real channel width, AP uptime, vendor, Wi-Fi generation, security, client count and channel load.
+It also finds the devices on your network (an IP scanner) and draws coverage heatmaps on a floor plan.
 
 ## Features
 
@@ -34,9 +39,14 @@ paid tool: real channel width, AP uptime, vendor, Wi-Fi generation, security, cl
   legacy-only APs and possible evil twins. Issues appear as a small badge in the table and as a list in the Issues tab.
 - **Graphs**: a channel/spectrum view for each band and a signal history of 1, 5 or 15 minutes.
 - **Filters**: band, search (SSID / BSSID / vendor / device), hide inactive, hide hidden networks.
-- **Your layout**: right-click the table header to choose columns. Column order, column widths, window size and panel
-  height are remembered.
+- **Your layout**: columns spread over the window so nothing is cut off. Right-click the table header to choose columns;
+  column order, window size and panel height are remembered.
 - **Dark and light theme**, or follow the Windows setting.
+- **Network devices** (IP scanner): finds every device on the network you are connected to, or on any range you enter
+  (192.168.1.0/24, 10.0.0.1-50, single addresses). For each device it shows the IP and MAC address, vendor, response time and
+  open common ports, and works out what the device is: its name (DNS, NetBIOS, mDNS, SMB, UPnP), model or Windows version, and a
+  type such as router, printer, NAS, camera, TV or phone. Web interfaces open with one click, and risky services
+  (Telnet, FTP, VNC) are flagged. Port checks can be turned off for a quick ping-only scan.
 - **Site survey heatmap**: load a floor plan (or use a blank canvas) and click where you are standing. wific measures
   for about 4 seconds and draws a coverage heatmap for any network and band. Surveys can be saved and exported as PNG.
 - **Recording and playback**: record a session to a `.wificrec` file and replay it later with a timeline, for example
@@ -44,6 +54,21 @@ paid tool: real channel width, AP uptime, vendor, Wi-Fi generation, security, cl
 - **CSV export**.
 - **Portable**: a single `.exe` with no installer and no registry entries. Settings are saved in `wific.settings.json` next to the exe.
 - **Built-in updater**: wific tells you when a new release is out and can replace itself in one click.
+
+## Screenshots
+
+<table>
+  <tr>
+    <td><img src="docs/screenshots/devices.png" alt="Network devices page"><br><sub>Network devices: names, types, models and open services</sub></td>
+    <td><img src="docs/screenshots/survey.png" alt="Site survey heatmap"><br><sub>Site survey: coverage heatmap on a floor plan</sub></td>
+  </tr>
+  <tr>
+    <td><img src="docs/screenshots/history.png" alt="Signal history"><br><sub>Signal history of all networks</sub></td>
+    <td><img src="docs/screenshots/light.png" alt="Light theme"><br><sub>Light theme, security issues</sub></td>
+  </tr>
+</table>
+
+The screenshots use made-up networks and devices.
 
 ## Requirements
 
